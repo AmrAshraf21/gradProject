@@ -66,10 +66,10 @@ exports.login = async (req, res, next) => {
 
     res.status(200).json({ token: token, userId: loadedUser._id.toString() });
   } catch (error) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
+    if (!error.statusCode) {
+      error.statusCode = 500;
     }
-    next(err);
+    next(error);
   }
 };
 
