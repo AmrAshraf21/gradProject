@@ -1,11 +1,29 @@
-const express = require('express');
+const express = require("express");
+const { body, check } = require("express-validator");
 const router = express.Router();
-const authController = require('../controllers/authCont');
-router.get('/login',(req,res,next)=>{
-    res.status(200).json({message:"Login page"})
-
-})
-router.post('/login',authController.login)
+const User = require("../models/user");
+const authCont = require("../controllers/authCont");
 
 
+router.post(
+  "/signup",
+  [
+    check("email")
+      .isEmail()
+      .normalizeEmail()
+      .withMessage("Please Enter a Valid Email")
+      .custom((value, { req }) => {
+        return User.findOne({ email: value }).then((userDoc) => {
+          if (userDoc) {
+            return Promise.reject("Email Address is Already Exists");
+          }
+        });
+      }),
+    check("password").trim().isLength({ min: 5 }).withMessage("please enter a strong password"),
+    check("firstName").trim().not().isEmpty(),
+    check("lastName").trim().not().isEmpty(),
+  ],
+  authCont.signup
+);
+router.post('/login',authCont.login);
 module.exports = router;
