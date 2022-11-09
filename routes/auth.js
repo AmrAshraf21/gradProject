@@ -19,9 +19,9 @@ router.post(
           }
         });
       }),
-    check("password").trim().isLength({ min: 5 }).withMessage("please enter a strong password"),
-    check("firstName").trim().not().isEmpty(),
-    check("lastName").trim().not().isEmpty(),
+    body("password").trim().isLength({ min: 5 }).withMessage("please enter a strong password"),
+    body("firstName").trim().not().isEmpty(),
+    body("lastName").trim().not().isEmpty(),
   ],
   authCont.signup
 );
