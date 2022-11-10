@@ -38,6 +38,7 @@ mongoose
   .connect(MONGO_URL)
   .then((result) => {
     console.log("connected");
+    console.log(PORT);
     app.listen(PORT);
   })
   .catch((err) => console.log(err));

@@ -4,15 +4,17 @@ const { validationResult } = require("express-validator");
 const User = require("../models/user.js");
 
 exports.signup = async (req, res, next) => {
+  try {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log(errors);
     const error = new Error("validation Failed");
     error.statusCode = 422;
     error.data = errors.array();
     throw error;
   }
   const { firstName, lastName, email, password, confirmPassword } = req.body;
-  try {
+  
     const hashedPw = await bcrypt.hash(password, 12);
     const user = new User({
       email: email,
