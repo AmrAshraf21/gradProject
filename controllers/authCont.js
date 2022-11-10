@@ -16,17 +16,15 @@ const transporter = nodemailer.createTransport(sendgridTransport({
 }));
 
 exports.signup = async (req, res, next) => {
-  try {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log(errors);
     const error = new Error("validation Failed");
     error.statusCode = 422;
     error.data = errors.array();
     throw error;
   }
   const { firstName, lastName, email, password, confirmPassword } = req.body;
-  
+  try {
     const hashedPw = await bcrypt.hash(password, 12);
     const user = new User({
       email: email,
@@ -147,6 +145,8 @@ exports.newPassword = async (req, res, next) => {
 		resetUser.resetToken = undefined;
 		resetUser.resetTokenExpiration = undefined;
 		await resetUser.save();
+
+    res.status(200).json({ message: 'successfull reset', token: token });
 	} catch {
 		if (!error.statusCode) {
 			error.statusCode = 500;
