@@ -1,7 +1,19 @@
+const crypto = require('crypto');
+
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { validationResult } = require("express-validator");
+const nodemailer = require('nodemailer');
+const sendgridTransport = require('nodemailer-sendgrid-transport');
+
 const User = require("../models/user.js");
+const { htmlToText } = require('html-to-text');
+
+const transporter = nodemailer.createTransport(sendgridTransport({
+  auth: {
+    api_key: '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'
+  }
+}));
 
 exports.signup = async (req, res, next) => {
   try {
@@ -71,7 +83,7 @@ exports.login = async (req, res, next) => {
       .json({
         message: "Login Success",
         token: token,
-        userId: loadedUser._id.toString(),
+        userId: loadedUser._id.toString()
       });
   } catch (error) {
     if (!error.statusCode) {
@@ -79,6 +91,68 @@ exports.login = async (req, res, next) => {
     }
     next(error);
   }
+};
+
+exports.passwordReset = async (req, res, next) => {
+  const email = req.body.email;
+	crypto.randomBytes(32, async (err, Buffer) => {
+		if (err) {
+			err.statusCode = 500;
+      throw err;
+    }
+    const token = Buffer.toString('hex');
+		try {
+			const user = await User.findOne({ email: email });
+			if (!user) {
+				req.flash('error', 'No user found, Check your e-mail and try again.');
+			}
+			user.resetToken = token;
+			user.resetTokenExpiration = Date.now() + 600000;
+			await user.save();
+
+			await transporter.sendMail({
+				to: email,
+				from: 'gradrecobooks@gmail.com',
+				subject: 'Reset Password',
+				html: `<h2> Forgot your password? </h2>
+				<p>click here <a href="http://localhost:5000/reset/${token}"></a> to reset a new password</p>`,
+				text: htmlToText.fromString(html)
+			});
+			res.status(200).json({ message: 'reset password', token: token });
+		}	catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	});
+};
+
+exports.newPassword = async (req, res, next) => {
+	const newPassword = req.body.password;
+	const userId = req.body.userId;
+	const passwordToken = req.body.passwordToken;
+	let resetUser;
+
+	try {
+		const user = await User.findOne({
+			resetToken: passwordToken,
+			resetTokenExpiration: { $gt: Date.now()},
+			_id: userId
+		});
+		resetUser = user;
+
+		const hashedPw = await bcrypt.hash(newPassword, 12);
+		resetUser.password = hashedPw;
+		resetUser.resetToken = undefined;
+		resetUser.resetTokenExpiration = undefined;
+		await resetUser.save();
+	} catch {
+		if (!error.statusCode) {
+			error.statusCode = 500;
+		}
+		next(error);
+	}
 };
 
 // exports.testLogin = async(req,res,next)=>{
