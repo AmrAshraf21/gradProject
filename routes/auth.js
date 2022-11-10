@@ -29,6 +29,6 @@ router.post('/login',authCont.login);
 
 router.post('/passwordReset', authCont.passwordReset);
 
-router.patch('/newPassword', authCont.newPassword);
+router.patch('/newPassword/:token', authCont.newPassword);
 
 module.exports = router;
