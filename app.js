@@ -39,5 +39,6 @@ mongoose
   .then((result) => {
     console.log("connected");
     app.listen(PORT);
+    
   })
   .catch((err) => console.log(err));
