@@ -24,12 +24,13 @@ app.use((req, res, next) => {
 app.use("/", authRoutes);
 
 app.use((error, req, res, next) => {
-  console.log(error);
+  console.log(error.data);
+  console.log(error.message);
   const status = error.statusCode || 500;
   const message = error.message;
   const data = error.data;
 
-  res.status(status).json({ message: message, data: data });
+  res.status(status).json({ message: message, data: data,status:status });
 });
 const PORT = process.env.PORT || 5000;
 const MONGO_URL = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.fhsy9vt.mongodb.net/${process.env.MONGO_DEFAULT_DATABASE}`;
@@ -37,7 +38,8 @@ const MONGO_URL = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_P
 mongoose
   .connect(MONGO_URL)
   .then((result) => {
-    console.log("connected");
+    console.log("connected to Database");
+    
     app.listen(PORT);
   })
   .catch((err) => console.log(err));
