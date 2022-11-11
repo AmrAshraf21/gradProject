@@ -29,6 +29,7 @@ router.post('/login',authCont.login);
 
 router.post('/passwordReset', authCont.passwordReset);
 
+
 router.post('/newPassword/:token', authCont.newPassword);
 
 module.exports = router;
