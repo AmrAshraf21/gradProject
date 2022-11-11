@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
 
 const User = require("../models/user.js");
-const { convert } = require('html-to-text');
+//const { convert } = require('html-to-text');
 
 const transporter = nodemailer.createTransport(sendgridTransport({
   auth: {
@@ -23,13 +23,13 @@ exports.signup = async (req, res, next) => {
   }
   const { firstName, lastName, email, password, confirmPassword } = req.body;
   try {
-    const hashedPw = await bcrypt.hash(password, 12);
+    const hashedPw = await bcrypt.hash(password && confirmPassword, 12);
     const user = new User({
       email: email,
       firstName: firstName,
       lastName: lastName,
       password: hashedPw,
-      confirmPassword: confirmPassword,
+      confirmPassword: hashedPw
     });
 
     const savedUser = await user.save();
