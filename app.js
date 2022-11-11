@@ -1,10 +1,15 @@
 const mongoose = require("mongoose");
 const express = require("express");
+
 const app = express();
+
 const authRoutes = require("./routes/auth");
+
 const bodyParser = require("body-parser");
+
 const dotenv = require("dotenv");
 dotenv.config();
+
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -21,7 +26,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/auth", authRoutes);
+app.use('/auth', authRoutes);
 
 app.use((error, req, res, next) => {
   console.log(error);
@@ -39,6 +44,5 @@ mongoose
   .then((result) => {
     console.log("connected");
     app.listen(PORT);
-    
   })
   .catch((err) => console.log(err));

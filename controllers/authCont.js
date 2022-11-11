@@ -1,9 +1,7 @@
-const crypto = require('crypto');
-
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { validationResult } = require("express-validator");
-const nodemailer = require("nodemailer")
+const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
 
 const User = require("../models/user.js");
@@ -93,37 +91,37 @@ exports.login = async (req, res, next) => {
 
 exports.passwordReset = async (req, res, next) => {
   const email = req.body.email;
-	crypto.randomBytes(32, async (err, Buffer) => {
-		if (err) {
-			err.statusCode = 500;
-      throw err;
-    }
-    const token = Buffer.toString('hex');
-		try {
-			const user = await User.findOne({ email: email });
-			if (!user) {
-				req.flash('error', 'No user found, Check your e-mail and try again.');
-			}
-			user.resetToken = token;
-			user.resetTokenExpiration = Date.now() + 600000;
-			await user.save();
-
-			await transporter.sendMail({
-				to: email,
-				from: 'gradrecobooks@gmail.com',
-				subject: 'Reset Password',
-				html: `<h2> Forgot your password? </h2>
-				<p>click here <a href="http://localhost:5000/reset/${token}"></a> to reset a new password</p>`,
-				text: htmlToText.fromString(html)
-			});
-			res.status(200).json({ message: 'reset password', token: token });
-		}	catch (error) {
-			if (!error.statusCode) {
-				error.statusCode = 500;
-			}
-			next(error);
+	const token = jwt.sign(
+    { email: email },
+    "secretkeytoencryptthetoken",
+    { expiresIn: "1h" }
+    );
+	try {
+		const user = await User.findOne({ email: email });
+		if (!user) {
+			const error = new Error('E-mail not found.');
+      error.statusCode = 404;
+      throw error;
 		}
-	});
+		user.resetToken = token;
+		user.resetTokenExpiration = Date.now() + 600000;
+		await user.save();
+
+		await transporter.sendMail({
+			to: req.body.email,
+			from: 'gradrecobooks@gmail.com',
+			subject: 'Reset Password',
+			html: `<h2> Forgot your password? </h2>
+			<p>click here <a href="http://localhost:5000/reset/${token}"></a> to reset a new password</p>`,
+			text: htmlToText.fromString(html)
+		});
+		res.status(200).json({ message: 'reset password', token: token });
+	}	catch (error) {
+		if (!error.statusCode) {
+			error.statusCode = 500;
+		}
+		next(error);
+	}
 };
 
 exports.newPassword = async (req, res, next) => {
