@@ -1,15 +1,15 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { validationResult } = require("express-validator");
+const { validationResult } = require('express-validator/check');
 const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
 
 const User = require("../models/user.js");
-const { htmlToText } = require('html-to-text');
+const { convert } = require('html-to-text');
 
 const transporter = nodemailer.createTransport(sendgridTransport({
   auth: {
-    api_key: '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'
+    api_key: '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'
   }
 }));
 
@@ -108,12 +108,11 @@ exports.passwordReset = async (req, res, next) => {
 		await user.save();
 
 		await transporter.sendMail({
-			to: req.body.email,
+			to: email,
 			from: 'gradrecobooks@gmail.com',
 			subject: 'Reset Password',
 			html: `<h2> Forgot your password? </h2>
-			<p>click here <a href="http://localhost:5000/reset/${token}"></a> to reset a new password</p>`,
-			text: htmlToText.fromString(html)
+			<p>click here <a href="http://localhost:5000/reset/${token}"></a> to reset a new password</p>`
 		});
 		res.status(200).json({ message: 'reset password', token: token });
 	}	catch (error) {

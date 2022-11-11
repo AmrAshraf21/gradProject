@@ -20,8 +20,8 @@ router.post(
         });
       }),
     body("password").trim().isLength({ min: 5 }).withMessage("please enter a strong password"),
-    body("firstName").trim().not().isEmpty(),
-    body("lastName").trim().not().isEmpty(),
+    body("firstName").trim().not().notEmpty(),
+    body("lastName").trim().not().notEmpty(),
   ],
   authCont.signup
 );
@@ -29,6 +29,6 @@ router.post('/login',authCont.login);
 
 router.post('/passwordReset', authCont.passwordReset);
 
-router.patch('/newPassword/:token', authCont.newPassword);
+router.post('/newPassword/:token', authCont.newPassword);
 
 module.exports = router;
