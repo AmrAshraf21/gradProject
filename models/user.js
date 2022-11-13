@@ -21,8 +21,13 @@ const userSchema = new Schema({
   },
   confirmPassword: {
     type: String,
-    required:true
   },
+  resetToken:{
+    type:String,
+  },
+  resetTokenExpiration:{
+    type:Date
+  }
 });
 
 module.exports = mongoose.model("User", userSchema);

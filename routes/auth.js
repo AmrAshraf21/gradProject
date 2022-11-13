@@ -26,4 +26,8 @@ router.post(
   authCont.signup
 );
 router.post('/login',authCont.login);
+
+router.post('/password-reset',authCont.passwordReset);
+
+
 module.exports = router;
