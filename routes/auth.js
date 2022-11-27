@@ -25,9 +25,10 @@ router.post(
   ],
   authCont.signup
 );
-router.post('/login',authCont.login);
+router.post('/login', authCont.login);
 
-router.post('/password-reset',authCont.passwordReset);
+router.post('/resetPw', authCont.passwordReset);
 
+router.post('/newPw', authCont.newPassword);
 
 module.exports = router;

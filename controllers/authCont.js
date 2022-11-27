@@ -106,52 +106,73 @@ exports.passwordReset =  async(req, res, next) => {
   try{
     const { email } = req.body;
     let randomCode;
-  const userExists  = await User.findOne({ email: email })
-      if(!userExists){
-        const error = new Error("this is Email Not Found");
-        error.statusCode = 401;
-        throw error;      
-      
-      }
-       randomCode = Math.ceil(Math.random() * 1000000);
-      const resetToken =  jwt.sign({
-        _id: userExists._id,
-        firstName: userExists.firstName,
-        email: userExists.email,
-        code:randomCode,
-      },"secretkeytoencryptthetoken",
-      { expiresIn: "1h" });
-      userExists.resetToken = resetToken;
-      userExists.resetTokenExpiration = Date.now() + 3600000;
-      const savedUser= await userExists.save();
-      const subject = `Reset Password`;
-       const body = `This message come to you because you Want to reset your password with code below ${email}`;
-      const html = `<h1>${randomCode}</h1>`
-      await transporter.sendMail({
-        text:"Hello",
-        to:savedUser.email,
-        from:"amrashraf159357@gmail.com",
-        html:`<h1>${randomCode}</h1>`,
-        subject:"this is reset password"
 
-      })
-     
+    const userExists  = await User.findOne({ email: email });
+    if(!userExists){
+      const error = new Error("this is Email Not Found");
+      error.statusCode = 401;
+      throw error;
+    }
+    randomCode = Math.ceil(Math.random() * 1000000);
+    const resetToken =  jwt.sign({
+      _id: userExists._id,
+      firstName: userExists.firstName,
+      email: userExists.email,
+      code:randomCode,
+    },
+    "secretkeytoencryptthetoken",
+    { expiresIn: "1h" });
 
-
-     res.status(200).json({message:"Reset Password",code:randomCode});
-   
-
+    userExists.resetToken = resetToken;
+    userExists.resetTokenExpiration = Date.now() + 3600000;
+    const savedUser= await userExists.save();
+    const subject = `Reset Password`;
+    const body = `This message come to you because you Want to reset your password with code below ${email}`;
+    const html = `<h1>${randomCode}</h1>`
+    await transporter.sendMail({
+      text:"Hello",
+      to:savedUser.email,
+      from: 'booksrecomendation@gmail.com',
+      html:`<h1>${randomCode}</h1>`,
+      subject:"this is reset password"
+    });
+    res.status(200).json({message:"Reset Password",code:randomCode});
   }catch(error){
     if (!error.statusCode) {
       error.statusCode = 500;
     }
     next(error);
   }
+};
+
+exports.newPassword = async (req, res, next) => {
+  const { newPassword, userId, passwordToken } = req.body;
+  let resetUser;
+  try {
+    const user = await User.findOne({
+      resetToken: passwordToken,
+      resetTokenExpiration: { $gt: Date.now()},
+      _id: userId
+    });
+
+    resetUser = user;
     
-
+    //const hashedPw = await bcrypt.hash(newPassword, 12);
+    resetUser.updateOne({ password: newPassword, resetToken: undefined, resetTokenExpiration: undefined });
+    /* resetUser.password = newPassword;
+    resetUser.resetToken = undefined;
+    resetUser.resetTokenExpiration = undefined; */
+    await resetUser.save();
+  
+    res.status(200).json({ message: 'successfull reset' });
+  } catch(error) {
+    if (!error.statusCode) {
+      console.log(error);
+      error.statusCode = 500;
+    }
+    next(error);
   }
-
-
+};
 
 
 
