@@ -26,6 +26,14 @@ app.use('/auth', authRoutes);
 app.get('/auth',(req,res,next)=>{
   res.send("App is running");
 })
+
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE', 'OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', '*');
+  next();
+});
  
 app.use((error, req, res, next) => {
   console.log(error.data);
