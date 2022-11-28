@@ -4,7 +4,6 @@ const router = express.Router();
 const User = require("../models/user");
 const authCont = require("../controllers/authCont");
 
-
 router.post(
   "/signup",
   [
@@ -19,17 +18,29 @@ router.post(
           }
         });
       }),
-    body("password").trim().isLength({ min: 5 }).withMessage("please enter a strong password"),
-    body("firstName").trim().not().notEmpty(),
-    body("lastName").trim().not().notEmpty(),
+    check("password")
+      .trim()
+      .isLength({ min: 5 })
+      .withMessage("please enter a strong password"),
+    check("firstName").trim().not().isEmpty(),
+    check("lastName").trim().not().isEmpty(),
   ],
   authCont.signup
 );
-router.post('/login',authCont.login);
+router.post("/login", authCont.login);
 
-router.post('/passwordReset', authCont.passwordReset);
-
-
-router.post('/newPassword/:token', authCont.newPassword);
+router.post("/password-reset", authCont.passwordReset);
+router.post(
+  "/new-password",
+  [
+    check("newPassword")
+      .not()
+      .isEmpty()
+      .trim()
+      .isLength({ min: 6 })
+      .withMessage("Must provide a password,try again..!"),
+  ],
+  authCont.postNewPassword
+);
 
 module.exports = router;
