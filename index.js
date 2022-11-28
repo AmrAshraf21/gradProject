@@ -21,7 +21,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/", authRoutes);
+app.use('/auth', authRoutes);
 
 app.get('/auth',(req,res,next)=>{
   res.send("App is running");
