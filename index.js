@@ -23,7 +23,7 @@ app.use((req, res, next) => {
 
 app.use("/", authRoutes);
 
-app.get('/',(req,res,next)=>{
+app.get('/auth',(req,res,next)=>{
   res.send("App is running");
 })
  

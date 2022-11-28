@@ -4,22 +4,30 @@ const { validationResult } = require("express-validator");
 const User = require("../models/user.js");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
-const sendgridTransport = require("nodemailer-sendgrid-transport");
-const dotenv = require('dotenv');
+// const sendgridTransport = require("nodemailer-sendgrid-transport");
+const dotenv = require("dotenv");
 dotenv.config();
 
+let mailTransporter = nodemailer.createTransport({
+  service: "gmail",
+  port: 465,
+  host: "smtp.gmail.com",
+  secure: true,
+  auth: {
+    user: `${process.env.SENDING_EMAIL}`,
+    pass: `${process.env.PASSWORD_EMAIL}`,
+  },
+});
 
-const transporter = nodemailer.createTransport(
-  sendgridTransport({
-    auth: {
-      api_key:`${process.env.SENDGRID_API}`
-       ,
-    },
-  })
-);
-
-
-
+//SEND GRID
+// const transporter = nodemailer.createTransport(
+//   sendgridTransport({
+//     auth: {
+//       api_key:`${process.env.SENDGRID_API}`
+//        ,
+//     },
+//   })
+// );
 
 exports.signup = async (req, res, next) => {
   try {
@@ -42,12 +50,17 @@ exports.signup = async (req, res, next) => {
 
     const savedUser = await user.save();
 
-   
-    // const subject = `Welcome in out Application ${email}`;
-    // const body = `This message come to you because you signin in out application`;
-    // const html = `<h1>Welcome</h1>`
-    // await sendGridMail.send(getMessage(email,subject,body,html));
-    
+    await mailTransporter
+      .sendMail({
+        from: `${process.env.SENDING_EMAIL}`,
+        to: savedUser.email,
+        subject: "Welcome in our application",
+        text: "This mail send to you as a welcome message for registering in our application",
+      })
+      .then(() => {
+        console.log("suucced sending");
+      });
+
     res.status(201).json({
       message: "Success,User Created",
       savedUser: savedUser,
@@ -102,79 +115,102 @@ exports.login = async (req, res, next) => {
   }
 };
 
-exports.passwordReset =  async(req, res, next) => {
-  try{
+exports.passwordReset = async (req, res, next) => {
+  try {
     const { email } = req.body;
     let randomCode;
-  const userExists  = await User.findOne({ email: email })
-      if(!userExists){
-        const error = new Error("this is Email Not Found");
-        error.statusCode = 401;
-        throw error;      
-      
-      }
-       randomCode = Math.ceil(Math.random() * 1000000);
-      const resetToken =  jwt.sign({
+    const userExists = await User.findOne({ email: email });
+    if (!userExists) {
+      const error = new Error("this is Email Not Found");
+      error.statusCode = 401;
+      throw error;
+    }
+    randomCode = Math.ceil(Math.random() * 1000000);
+    const resetToken = jwt.sign(
+      {
         _id: userExists._id,
         firstName: userExists.firstName,
         email: userExists.email,
-        code:randomCode,
-      },"secretkeytoencryptthetoken",
-      { expiresIn: "1h" });
-      userExists.resetToken = resetToken;
-      userExists.resetTokenExpiration = Date.now() + 3600000;
-      const savedUser= await userExists.save();
-      const subject = `Reset Password`;
-       const body = `This message come to you because you Want to reset your password with code below ${email}`;
-      const html = `<h1>${randomCode}</h1>`
-      await transporter.sendMail({
-        text:"Hello",
-        to:savedUser.email,
-        from:"amrashraf159357@gmail.com",
-        html:`<h1>${randomCode}</h1>`,
-        subject:"this is reset password"
+        code: randomCode,
+      },
+      "secretkeytoencryptthetoken",
+      { expiresIn: "1h" }
+    );
+    userExists.resetToken = resetToken;
+    userExists.resetTokenExpiration = Date.now() + 3600000;
+    const savedUser = await userExists.save();
+    const subject = `Reset Password`;
+    // const body = `This message come to you because you Want to reset your password with code below ${email}`;
+    const html = `This message come to you because you Want to reset your password with code below ${email}<br><h1>${randomCode}</h1>`;
+    await mailTransporter.sendMail({
+      to: savedUser.email,
+      from: `${process.env.SENDING_EMAIL}`,
+      html: html,
+      subject: subject,
+    });
 
-      })
-     
-
-
-     res.status(200).json({message:"Reset Password",code:randomCode});
-   
-
-  }catch(error){
+    res
+      .status(200)
+      .json({
+        message: "Reset Password",
+        code: randomCode,
+        resetToken: resetToken,
+      });
+  } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
     }
     next(error);
   }
+};
+
+exports.postNewPassword = async (req, res, next) => {
+  try {
+    const { resetToken, newPassword } = req.body;
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+      const error = new Error("Reset Failed");
+      error.statusCode = 422;
+      error.data = errors.array();
+      throw error;
+    }
+    const userMatch = await User.findOne({
+
+        resetToken: resetToken,
+        resetTokenExpiration: {$gt:Date.now()},
     
-
+    });
+    
+   if (!userMatch) {
+     const error = new Error("Something wrong , make a reset again..!");
+     error.statusCode = 401;
+     throw error;
+   }
+   
+    const hashPw = await bcrypt.hash(newPassword, 12);
+     userMatch.password = hashPw;
+     userMatch.resetToken = undefined;
+     userMatch.resetTokenExpiration = undefined;
+     await userMatch.save();
+     res.status(200).json({message:"Success Change to a new password"})
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
   }
+};
 
-
-
-
-
-
-
-
-
-
-
-  // sendGridMail.setApiKey(`${process.env.SENDGRID_API}`);
+// sendGridMail.setApiKey(`${process.env.SENDGRID_API}`);
 
 // const getMessage =(email,subject,body,html)=>{
 //   return {
 //     to:email ,
-//     from: 'amrashraf314@gmail.com',
+//     from: '',
 //     subject:subject,
 //     text: body,
 //     html:html,
 //   };}
-
-
-
-
 
 //     if (userExists) {
 //       let randomCode = Math.ceil(Math.random() * 1000000);
@@ -186,7 +222,7 @@ exports.passwordReset =  async(req, res, next) => {
 //       },"secretkeytoencryptthetoken",
 //       { expiresIn: "1h" });
 //       let receiver = userExists.email;
-//       let sender = "amrashraf314@gmail.com";
+//       let sender = "";
 //       let subject = "Reset Your Password";
 //       let text = "Use the Recovery Code below to restore your password";
 //       let html = `<p>${randomCode}</p>`
@@ -199,45 +235,30 @@ exports.passwordReset =  async(req, res, next) => {
 //         text:text,
 //         html:html
 //       })
-      
+
 // console.log("send",sendEmail);
 //     }
 
+//if (result.success) {
+//           let randomCode = Math.random() * 1000000;
 
+//           payload = {
+//               _id: result.record._id, name: result.record.name, email: result.record.email,
+//               role: result.record.role, code: randomCode
+//           }
+//           const token = jwt.generateToken(payload);
 
+//           let reciever = result.record.email;
+//           let subject = "Reset Your Password";
+//           let text = "You have forgotten your password, here is your recovery code";
+//           let html = `<h1>${randomCode}</h1>`
+//           const email = await sendEmail(reciever, subject, text, html)
+//           console.log(`email`, email);
+//           if (email) res.status(email.code).json({ email, token, info: email.info });
+//           else res.status(email.code).json(email);
+//       }
 
-
-
-
-
-
-
-
-
-
-
-
-
-  //if (result.success) {
-  //           let randomCode = Math.random() * 1000000;
-
-  //           payload = {
-  //               _id: result.record._id, name: result.record.name, email: result.record.email,
-  //               role: result.record.role, code: randomCode
-  //           }
-  //           const token = jwt.generateToken(payload);
-
-  //           let reciever = result.record.email;
-  //           let subject = "Reset Your Password";
-  //           let text = "You have forgotten your password, here is your recovery code";
-  //           let html = `<h1>${randomCode}</h1>`
-  //           const email = await sendEmail(reciever, subject, text, html)
-  //           console.log(`email`, email);
-  //           if (email) res.status(email.code).json({ email, token, info: email.info });
-  //           else res.status(email.code).json(email);
-  //       }
-
-  // let randomCode = Math.random() * 1000000;
+// let randomCode = Math.random() * 1000000;
 //};
 
 // crypto.randomBytes(32,(err,buffer)=>{
@@ -258,7 +279,7 @@ exports.passwordReset =  async(req, res, next) => {
 //   }).then(result=>{
 //     transporter.sendMail({
 //       to:email,
-//       from:"amrashraf314@gmail.com",
+//       from:"",
 //       subject:"Reset Your Password",
 //       text:"",
 //       html:`<h1>Forgot Your Password?</h1>
