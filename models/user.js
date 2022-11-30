@@ -19,9 +19,6 @@ const userSchema = new Schema({
     type: String,
     required:true
   },
-  confirmPassword: {
-    type: String,
-  },
   resetToken:{
     type:String,
   },
