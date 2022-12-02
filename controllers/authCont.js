@@ -125,7 +125,7 @@ exports.passwordReset = async (req, res, next) => {
       error.statusCode = 401;
       throw error;
     }
-    randomCode = Math.ceil(Math.random() * 1000000);
+    randomCode = Math.floor(100000 + Math.random() * 900000)
     const resetToken = jwt.sign(
       {
         _id: userExists._id,
