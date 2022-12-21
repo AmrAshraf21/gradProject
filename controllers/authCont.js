@@ -19,15 +19,6 @@ let mailTransporter = nodemailer.createTransport({
   },
 });
 
-//SEND GRID
-// const transporter = nodemailer.createTransport(
-//   sendgridTransport({
-//     auth: {
-//       api_key:`${process.env.SENDGRID_API}`
-//        ,
-//     },
-//   })
-// );
 
 exports.signup = async (req, res, next) => {
   try {
@@ -98,7 +89,7 @@ exports.login = async (req, res, next) => {
         email: loadedUser.email,
         userId: loadedUser._id.toString(),
       },
-      "secretkeytoencryptthetoken",
+      process.env.SECRET_KEY_JWT,
       { expiresIn: "1h" }
     );
 
@@ -133,7 +124,7 @@ exports.passwordReset = async (req, res, next) => {
         email: userExists.email,
         code: randomCode,
       },
-      "secretkeytoencryptthetoken",
+      process.env.SECRET_KEY_JWT,
       { expiresIn: "1h" }
     );
     userExists.resetToken = resetToken;
