@@ -24,15 +24,15 @@ exports.getWishlist = async (req, res, next) => {
 
 exports.addToWishlist = async (req, res, next) => {
   const { _id } = req.user;
-  const { bookId } = req.body;
+  const { book_Id } = req.body;
   try {
     const user = await User.findById(_id);
-    const alreadyAdded = await user.wishlist.find(id => id.toString() == bookId.toString());
+    const alreadyAdded = await user.wishlist.find(id => id.toString() == book_Id.toString());
     if (alreadyAdded) {
      return res.status(200).json({ message: 'Book already in wishlist', user: user });
     } else {
       let updatedUser = await User.findByIdAndUpdate(_id,
-        { $push: { wishlist: bookId } },
+        { $push: { wishlist: book_Id } },
         { new: true }
       );
       return res.status(200).json({ message: 'successfully added to wishlist', user: updatedUser });
