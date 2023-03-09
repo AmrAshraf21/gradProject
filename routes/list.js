@@ -1,18 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const listController = require("../controllers/listCont");
-const { validateToken, verifyTokenAndAuthorization } = require('../middleware/validateToken');
+const { verifyTokenAndAuthorization } = require('../middleware/validateToken');
 
-router.get('/wishlist', verifyTokenAndAuthorization, listController.getWishlist);
-router.put('/addToWishlist', validateToken, listController.addToWishlist);
-router.put('/RemoveFromWishlist', validateToken, listController.removeFromWishlist);
+router.get('/wishlist/:userId', verifyTokenAndAuthorization, listController.getWishlist);
+router.put('/addToWishlist', verifyTokenAndAuthorization, listController.addToWishlist);
+router.put('/RemoveFromWishlist', verifyTokenAndAuthorization, listController.removeFromWishlist);
 
-router.get('/favorits', validateToken, listController.getFavorits);
-router.put('/addToFavorits', validateToken, listController.addToFavorits);
-router.put('/removeFromFavorits', validateToken, listController.removeFromFavorits);
+router.get('/favorits', verifyTokenAndAuthorization, listController.getFavorits);
+router.put('/addToFavorits', verifyTokenAndAuthorization, listController.addToFavorits);
+router.put('/removeFromFavorits', verifyTokenAndAuthorization, listController.removeFromFavorits);
 
-router.get('/alreadyread', validateToken, listController.getRead);
-router.put('/addToAlreadyRead', validateToken, listController.addToRead);
-router.put('/removeFromAlreadyRead', validateToken, listController.removeFromRead);
+router.get('/alreadyread', verifyTokenAndAuthorization, listController.getRead);
+router.put('/addToAlreadyRead', verifyTokenAndAuthorization, listController.addToRead);
+router.put('/removeFromAlreadyRead', verifyTokenAndAuthorization, listController.removeFromRead);
 
 module.exports = router;

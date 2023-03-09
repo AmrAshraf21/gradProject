@@ -4,10 +4,10 @@ const User = require('../models/user.js');
 const { validationResult } = require('express-validator');
 
 exports.getWishlist = async (req, res, next) => {
-  const { _id } = req.user;
+  const userId = req.params._Id;
   try {
-    const user = await User.findById(_id);
-    const userWishlist = await user.wishlist.find();
+    const user = await User.findById(userId);
+    const userWishlist = await user.find({ wishlist: wishlist});
     if (userWishlist.isEmpty())
     {
       return res.status(200).json({ message: "User's wishlist is empty", wishlist: userWishlist });
