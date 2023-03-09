@@ -1,0 +1,10 @@
+{
+	"printWidth": 120,
+	"tabWidth": 2,
+	"bracketSpacing": true,
+	"singleQuote": true,
+	"bracketSameLine": true,
+	"endOfLine": "crlf",
+	"useTabs": true,
+	"singleAttributePerLine": true
+}

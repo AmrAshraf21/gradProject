@@ -1,10 +1,11 @@
 const mongoose = require("mongoose");
+const Book = require('./book');
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
   firstName:{
     type:String,
-    required:true
+    required:true,
   },
   lastName:{
     type:String,
@@ -12,19 +13,51 @@ const userSchema = new Schema({
   },
   email: {
     type: String,
-    required:true
+    required:true,
+    unique: true
   },
-
   password: {
     type: String,
     required:true
   },
+  
   resetToken:{
     type:String,
   },
   resetTokenExpiration:{
     type:Date
+  },
+  
+  favorits: {
+    books: [
+      {
+        bookId: {
+          type: Schema.Types.ObjectId,
+          ref: 'Book'
+        }
+      }
+    ]
+  },
+  wishlist: {
+    books: [
+      {
+        bookId: {
+          type: Schema.Types.ObjectId,
+          ref: 'Book'
+        }
+      }
+    ]
+  },
+  read: {
+    books: [
+      {
+        bookId: {
+          type: Schema.Types.ObjectId,
+          ref: 'Book'
+        }
+      }
+    ]
   }
 });
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model('User', userSchema);
