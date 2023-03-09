@@ -23,10 +23,10 @@ router.post(
 
 
 router.get('/', verifyTokenAndAuthorization, bookController.getAllBooks);
-router.get('/:bookId',verifyTokenAndAuthorization,bookController.getSingleBook);
+router.get('/:bookId', verifyTokenAndAuthorization, bookController.getSingleBook);
 router.delete('/:bookId',verifyTokenAdmin,bookController.deleteBook);
 router.patch('/:bookId',verifyTokenAdmin,bookController.updateBook);
 
-router.get('/search/:srch', bookController.getSearch);
+router.get('/search/:srch', verifyTokenAndAuthorization, bookController.getSearch);
 
 module.exports = router;
