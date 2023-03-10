@@ -15,7 +15,7 @@ exports.postAddBook = async (req, res, next) => {
     }
     const createdBook = await Book.create(req.body);
 
-    return res.status(200).json({ message: 'Success Created...', data: createdBook });
+    return res.status(200).json({ message: 'Success Created...', BOOK: createdBook });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -28,7 +28,7 @@ exports.getSingleBook = async (req, res, next) => {
   try {
     const bookId = req.params.bookId;
     const book = await Book.findOne({ book_id: bookId });
-    return res.status(200).json({ message: 'Done...', books: book });
+    return res.status(200).json({ message: 'Done...', BOOK: book });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -41,7 +41,7 @@ exports.deleteBook = async (req, res, next) => {
   try {
     const bookId = req.params.bookId;
     await Book.findOneAndDelete({ book_id: bookId });
-    return res.status(200).json({ message: 'Successfully Deleted...', data: null });
+    return res.status(200).json({ message: 'Successfully Deleted...', BOOK: null });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -58,7 +58,7 @@ exports.updateBook = async (req, res, next) => {
       runValidators: true,
     });
 
-    return res.status(200).json({ message: 'Successfully Updated...', data: updatedBook });
+    return res.status(200).json({ message: 'Successfully Updated...', BOOK: updatedBook });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -75,7 +75,7 @@ exports.getAllBooks = async (req, res, next) => {
   const perPage = 20;
   try {
     const getBooks = await Book.find().skip({ currentPage: -1 } * perPage).limit(perPage);
-    return res.status(200).json({ message: 'Success Retrieve Books', page: currentPage, data: getBooks });
+    return res.status(200).json({ message: 'Success Retrieve Books', page: currentPage, BOOKS: getBooks });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -95,7 +95,7 @@ exports.getSearch = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    return res.status(200).json({ books: book });
+    return res.status(200).json({ BOOKS: book });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
