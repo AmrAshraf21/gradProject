@@ -98,7 +98,7 @@ exports.login = async (req, res, next) => {
         userId: loadedUser._id.toString(),
       },
       "secretkeytoencryptthetoken",
-      { expiresIn: "1h" }
+      { expiresIn: '7d' }
     );
 
     res.status(200).json({

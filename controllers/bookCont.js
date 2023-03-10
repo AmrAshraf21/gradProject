@@ -74,8 +74,9 @@ exports.getAllBooks = async (req, res, next) => {
   const currentPage = req.query.page || 1;
   const perPage = 20;
   try {
-    const getBooks = await Book.find().skip({ currentPage: -1 } * perPage).limit(perPage);
-    return res.status(200).json({ message: 'Success Retrieve Books', page: currentPage, BOOKS: getBooks });
+    const getBooks = await Book.find().countDocuments();
+    const books = await Book.find().skip((currentPage - 1) * perPage).limit(perPage);
+    return res.status(200).json({ message: 'Success Retrieve Books', page: currentPage, BOOKS: books, books: getBooks });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
