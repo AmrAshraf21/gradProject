@@ -28,7 +28,7 @@ exports.getSingleBook = async (req, res, next) => {
   try {
     const bookId = req.params.bookId;
     const book = await Book.findOne({ book_id: bookId });
-    return res.status(200).json({ message: 'Done...', data: book });
+    return res.status(200).json({ message: 'Done...', books: book });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
