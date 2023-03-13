@@ -3,7 +3,7 @@ const router = express.Router();
 const listController = require("../controllers/listCont");
 const { verifyTokenAndAuthorization } = require('../middleware/validateToken');
 
-router.get('/wishlist/:userId', verifyTokenAndAuthorization, listController.getWishlist);
+router.get('/wishlist', verifyTokenAndAuthorization, listController.getWishlist);
 router.put('/addToWishlist', verifyTokenAndAuthorization, listController.addToWishlist);
 router.put('/RemoveFromWishlist', verifyTokenAndAuthorization, listController.removeFromWishlist);
 
