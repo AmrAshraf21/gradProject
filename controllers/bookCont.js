@@ -15,7 +15,7 @@ exports.postAddBook = async (req, res, next) => {
     }
     const createdBook = await Book.create(req.body);
 
-    return res.status(200).json({ message: 'Success Created...', BOOK: createdBook });
+    return res.status(200).json({ message: 'Success Created...', results: createdBook });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -28,7 +28,7 @@ exports.getSingleBook = async (req, res, next) => {
   try {
     const bookId = req.params.bookId;
     const book = await Book.findOne({ book_id: bookId });
-    return res.status(200).json({ message: 'Done...', BOOK: book });
+    return res.status(200).json({ message: 'Done...', results: book });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -41,7 +41,7 @@ exports.deleteBook = async (req, res, next) => {
   try {
     const bookId = req.params.bookId;
     await Book.findOneAndDelete({ book_id: bookId });
-    return res.status(200).json({ message: 'Successfully Deleted...', BOOK: null });
+    return res.status(200).json({ message: 'Successfully Deleted...', results: null });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -58,7 +58,7 @@ exports.updateBook = async (req, res, next) => {
       runValidators: true,
     });
 
-    return res.status(200).json({ message: 'Successfully Updated...', BOOK: updatedBook });
+    return res.status(200).json({ message: 'Successfully Updated...', results: updatedBook });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -76,7 +76,7 @@ exports.getAllBooks = async (req, res, next) => {
   try {
     const getBooks = await Book.find().countDocuments();
     const books = await Book.find().skip((currentPage - 1) * perPage).limit(perPage);
-    return res.status(200).json({ message: 'Success Retrieve Books', page: currentPage, BOOKS: books, books: getBooks });
+    return res.status(200).json({ message: 'Success Retrieve Books', page: currentPage, results: books, books: getBooks });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -86,17 +86,20 @@ exports.getAllBooks = async (req, res, next) => {
 };
 
 exports.getSearch = async (req, res, next) => {
+  const currentPage = req.query.page || 1;
+  const perPage = 20;
   try {
     const srch = req.params.srch;
+    const count = await Book.find().countDocuments();
     const book = await Book.aggregate([
       { $match: { title: new RegExp(srch, "mi") } }
-    ]);
+    ]).skip((currentPage - 1) * perPage).limit(perPage);
     if (!book) {
       const error = new Error('No Results.');
       error.statusCode = 404;
       throw error;
     }
-    return res.status(200).json({ BOOKS: book });
+    return res.status(200).json({ page: currentPage, results: book, count: count });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
