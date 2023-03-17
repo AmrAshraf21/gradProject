@@ -67,9 +67,6 @@ exports.updateBook = async (req, res, next) => {
   }
 };
 
-/**
- * ! Must Add a limit and pagination on get all books
- */
 exports.getAllBooks = async (req, res, next) => {
   const currentPage = req.query.page || 1;
   const perPage = 20;
@@ -107,21 +104,3 @@ exports.getSearch = async (req, res, next) => {
     }
   }
 };
-
-// exports.getSearch = async (req, res, next) => {
-//  const srch = req.params.key;
-//   try {
-//     const book = await Book.find({"title": {$regex: `${srch}`, '$mi' }}).limit(10);
-//     if (!book) {
-//       const error = new Error('No Results.');
-//       error.statusCode = 404;
-//       throw error;
-//     }
-//     return res.status(200).json({ books: book });
-//   } catch (err) {
-//     if (!err.statusCode) {
-//       err.statusCode = 500;
-//       next(err);
-//     }
-//   }
-// };

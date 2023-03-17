@@ -48,7 +48,7 @@ const userSchema = new Schema({
       }
     ]
   },
-  read: {
+  alreadyRead: {
     books: [
       {
         bookId: {

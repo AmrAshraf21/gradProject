@@ -15,7 +15,7 @@ const validateToken = (req, res, next) => {
 
 const verifyTokenAndAuthorization = (req, res, next) => {
 	validateToken(req, res, () => {
-		if (req.user.id === req.params.id || req.user.role === 'user' || req.user.role === 'admin' || req.user.role === 'author') {
+		if (req.user._id === req.params._id || req.user.role === 'user' || req.user.role === 'admin' || req.user.role === 'author') {
 			next();
 		} else {
 			return res.status(403).json({ message: 'You Are not allowed!' });
