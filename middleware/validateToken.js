@@ -22,6 +22,10 @@ const verifyTokenAndAuthorization = (req, res, next) => {
 		}
 	});
 };
+<<<<<<< HEAD
+=======
+
+>>>>>>> 0c02d5152a67b9c6629d3d97d3cdf6ffaee0b067
 const verifyTokenAdmin = (req, res, next) => {
 	validateToken(req, res, () => {
 		if (req.user.role === 'admin') {
@@ -36,4 +40,8 @@ module.exports = {
 	validateToken,
 	verifyTokenAdmin,
 	verifyTokenAndAuthorization,
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> 0c02d5152a67b9c6629d3d97d3cdf6ffaee0b067

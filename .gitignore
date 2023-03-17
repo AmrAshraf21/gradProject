@@ -1,4 +1,11 @@
+<<<<<<< HEAD
 node_modules
 .env
 .Procfile
 vercel.json
+=======
+node_modules
+.env
+.Procfile
+notes.txt
+>>>>>>> 0c02d5152a67b9c6629d3d97d3cdf6ffaee0b067
