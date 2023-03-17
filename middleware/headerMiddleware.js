@@ -6,4 +6,8 @@ exports.setHeaders = (req, res, next) => {
 		return res.sendStatus(200);
 	}
 	next();
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> 0c02d5152a67b9c6629d3d97d3cdf6ffaee0b067
