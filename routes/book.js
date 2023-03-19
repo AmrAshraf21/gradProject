@@ -21,14 +21,6 @@ router.post(
 	bookController.postAddBook
 );
 
-<<<<<<< HEAD
-router.get('/', verifyTokenAndAuthorization, bookController.getAllBooks);
-router.get('/:bookId',verifyTokenAndAuthorization,bookController.getSingleBook);
-router.delete('/:bookId',verifyTokenAdmin,bookController.deleteBook);
-router.patch('/:bookId',verifyTokenAdmin,bookController.updateBook);
-
-module.exports = router;
-=======
 
 router.get('/', verifyTokenAndAuthorization, bookController.getAllBooks);
 router.get('/:bookId', verifyTokenAndAuthorization, bookController.getSingleBook);
@@ -38,4 +30,3 @@ router.patch('/:bookId',verifyTokenAdmin,bookController.updateBook);
 router.get('/search/:srch', verifyTokenAndAuthorization, bookController.getSearch); 
 
 module.exports = router;
->>>>>>> 0c02d5152a67b9c6629d3d97d3cdf6ffaee0b067

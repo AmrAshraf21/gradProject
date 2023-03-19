@@ -1,400 +1,188 @@
-<<<<<<< HEAD
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const { validationResult } = require("express-validator");
-const User = require("../models/user.js");
-const crypto = require("crypto");
-const nodemailer = require("nodemailer");
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const { validationResult } = require('express-validator');
+const User = require('../models/user.js');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 // const sendgridTransport = require("nodemailer-sendgrid-transport");
-const dotenv = require("dotenv");
+const dotenv = require('dotenv');
 dotenv.config();
 
 let mailTransporter = nodemailer.createTransport({
-  service: "gmail",
-  port: 465,
-  host: "smtp.gmail.com",
-  secure: true,
-  auth: {
-    user: `${process.env.SENDING_EMAIL}`,
-    pass: `${process.env.PASSWORD_EMAIL}`,
-  },
+	service: 'gmail',
+	port: 465,
+	host: 'smtp.gmail.com',
+	secure: true,
+	auth: {
+		user: `${process.env.SENDING_EMAIL}`,
+		pass: `${process.env.PASSWORD_EMAIL}`,
+	},
 });
 
-
 exports.signup = async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      const error = new Error("validation Failed");
-      error.statusCode = 422;
-      error.data = errors.array();
-      throw error;
-    }
-    const { firstName, lastName, email, password, confirmPassword,role } = req.body;
-    const hashedPw = await bcrypt.hash(password, 12);
-    const user = new User({
-      email: email,
-      firstName: firstName,
-      lastName: lastName,
-      password: hashedPw,
-      confirmPassword: confirmPassword,
-      role:role
-    });
+	try {
+		const errors = validationResult(req);
+		if (!errors.isEmpty()) {
+			const error = new Error('validation Failed');
+			error.statusCode = 422;
+			error.data = errors.array();
+			throw error;
+		}
+		const { firstName, lastName, email, password, confirmPassword } = req.body;
+		const hashedPw = await bcrypt.hash(password, 12);
+		const user = new User({
+			email: email,
+			firstName: firstName,
+			lastName: lastName,
+			password: hashedPw,
+			confirmPassword: confirmPassword,
+		});
 
-    const savedUser = await user.save();
-    
-    
-    await mailTransporter
-      .sendMail({
-        from: `${process.env.SENDING_EMAIL}`,
-        to: savedUser.email,
-        subject: "Welcome in our application",
-        text: "This mail send to you as a welcome message for registering in our application",
-      })
-      .then(() => {
-        console.log("succeed sending");
-      });
+		const savedUser = await user.save();
 
-  return  res.status(201).json({
-      message: "Success,User Created",
-      savedUser: savedUser,
-    });
-  } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
-    next(err);
-  }
+		await mailTransporter
+			.sendMail({
+				from: `${process.env.SENDING_EMAIL}`,
+				to: savedUser.email,
+				subject: 'Welcome in our application',
+				text: 'This mail send to you as a welcome message for registering in our application',
+			})
+			.then(() => {
+				console.log('suucced sending');
+			});
+
+		res.status(201).json({
+			message: 'Success,User Created',
+			savedUser: savedUser,
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
 };
 
 exports.login = async (req, res, next) => {
-  const { email, password } = req.body;
-  let loadedUser;
+	const { email, password } = req.body;
+	let loadedUser;
+	try {
+		const user = await User.findOne({ email: email });
+		if (!user) {
+			const error = new Error('this is Email Not Found');
+			error.statusCode = 401;
+			throw error;
+		}
+		loadedUser = user;
 
-  try {
-    const user = await User.findOne({ email: email });
-    if (!user) {
-      const error = new Error("this is Email Not Found");
-      error.statusCode = 401;
-      throw error;
-    }
-    loadedUser = user;
+		const isEqual = await bcrypt.compare(password, user.password);
 
-    const isEqual = await bcrypt.compare(password, user.password);
+		if (!isEqual) {
+			const error = new Error('wrong password , Try Again');
+			error.statusCode = 401;
+			throw error;
+		}
+		const token = jwt.sign(
+			{
+				userId: loadedUser._id.toString(),
+				role: loadedUser.role,
+			},
+			'secretkeytoencryptthetoken',
+			{ expiresIn: '7d' }
+		);
 
-    if (!isEqual) {
-      const error = new Error("wrong password , Try Again");
-      error.statusCode = 401;
-      throw error;
-    }
-    const token = jwt.sign(
-      {
-        userId: loadedUser._id.toString(),
-        role: loadedUser.role
-      },
-      process.env.SECRET_KEY_JWT,
-      { expiresIn: "30d" }
-    );
-
-    return res.status(200).json({
-      message: "Login Success",
-      token: token,
-      
-    });
-  } catch (error) {
-    if (!error.statusCode) {
-      error.statusCode = 500;
-    }
-    next(error);
-  }
+		res.status(200).json({
+			message: 'Login Success',
+			token: token,
+		});
+	} catch (error) {
+		if (!error.statusCode) {
+			error.statusCode = 500;
+		}
+		next(error);
+	}
 };
 
 exports.passwordReset = async (req, res, next) => {
-  try {
-    const { email } = req.body;
-    let randomCode;
-    const userExists = await User.findOne({ email: email });
-    if (!userExists) {
-      const error = new Error("this is Email Not Found");
-      error.statusCode = 401;
-      throw error;
-    }
-    randomCode = Math.ceil(Math.random() * 1000000);
-    const resetToken = jwt.sign(
-      {
-        _id: userExists._id,
-        firstName: userExists.firstName,
-        email: userExists.email,
-        code: randomCode,
-      },
-      process.env.SECRET_KEY_JWT,
-      { expiresIn: "1h" }
-    );
-    userExists.resetToken = resetToken;
-    userExists.resetTokenExpiration = Date.now() + 3600000;
-    const savedUser = await userExists.save();
-    const subject = `Reset Password`;
-    // const body = `This message come to you because you Want to reset your password with code below ${email}`;
-    const html = `This message come to you because you Want to reset your password with code below ${email}<br><h1>${randomCode}</h1>`;
-    await mailTransporter.sendMail({
-      to: savedUser.email,
-      from: `${process.env.SENDING_EMAIL}`,
-      html: html,
-      subject: subject,
-    });
+	try {
+		const { email } = req.body;
+		let randomCode;
+		const userExists = await User.findOne({ email: email });
+		if (!userExists) {
+			const error = new Error('this is Email Not Found');
+			error.statusCode = 401;
+			throw error;
+		}
+		randomCode = Math.floor(100000 + Math.random() * 900000);
+		const resetToken = jwt.sign(
+			{
+				_id: userExists._id,
+				firstName: userExists.firstName,
+				email: userExists.email,
+				code: randomCode,
+			},
+			'secretkeytoencryptthetoken',
+			{ expiresIn: '1h' }
+		);
+		userExists.resetToken = resetToken;
+		userExists.resetTokenExpiration = Date.now() + 3600000;
+		const savedUser = await userExists.save();
+		const subject = `Reset Password`;
+		// const body = `This message come to you because you Want to reset your password with code below ${email}`;
+		const html = `This message come to you because you Want to reset your password with code below ${email}<br><h1>${randomCode}</h1>`;
+		await mailTransporter.sendMail({
+			to: savedUser.email,
+			from: `${process.env.SENDING_EMAIL}`,
+			html: html,
+			subject: subject,
+		});
 
-    res
-      .status(200)
-      .json({
-        message: "Reset Password",
-        code: randomCode,
-        resetToken: resetToken,
-      });
-  } catch (error) {
-    if (!error.statusCode) {
-      error.statusCode = 500;
-    }
-    next(error);
-  }
+		res.status(200).json({
+			message: 'Reset Password',
+			code: randomCode,
+			resetToken: resetToken,
+		});
+	} catch (error) {
+		if (!error.statusCode) {
+			error.statusCode = 500;
+		}
+		next(error);
+	}
 };
 
 exports.postNewPassword = async (req, res, next) => {
-  try {
-    const { resetToken, newPassword } = req.body;
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      const error = new Error("Reset Failed");
-      error.statusCode = 422;
-      error.data = errors.array();
-      throw error;
-    }
-    const userMatch = await User.findOne({
+	try {
+		const { resetToken, newPassword } = req.body;
+		const errors = validationResult(req);
+		if (!errors.isEmpty()) {
+			const error = new Error('Reset Failed');
+			error.statusCode = 422;
+			error.data = errors.array();
+			throw error;
+		}
+		const userMatch = await User.findOne({
+			resetToken: resetToken,
+			resetTokenExpiration: { $gt: Date.now() },
+		});
 
-      resetToken: resetToken,
-      resetTokenExpiration: { $gt: Date.now() },
+		if (!userMatch) {
+			const error = new Error('Something wrong , make a reset again..!');
+			error.statusCode = 401;
+			throw error;
+		}
 
-    });
-
-    if (!userMatch) {
-      const error = new Error("Something wrong , make a reset again..!");
-      error.statusCode = 401;
-      throw error;
-    }
-
-    const hashPw = await bcrypt.hash(newPassword, 12);
-    userMatch.password = hashPw;
-    userMatch.resetToken = undefined;
-    userMatch.resetTokenExpiration = undefined;
-    await userMatch.save();
-    res.status(200).json({ message: "Success Change to a new password" })
-  } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
-    next(err);
-  }
-};
-=======
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const { validationResult } = require("express-validator");
-const User = require("../models/user.js");
-const crypto = require("crypto");
-const nodemailer = require("nodemailer");
-// const sendgridTransport = require("nodemailer-sendgrid-transport");
-const dotenv = require("dotenv");
-dotenv.config();
-
-let mailTransporter = nodemailer.createTransport({
-  service: "gmail",
-  port: 465,
-  host: "smtp.gmail.com",
-  secure: true,
-  auth: {
-    user: `${process.env.SENDING_EMAIL}`,
-    pass: `${process.env.PASSWORD_EMAIL}`,
-  },
-});
-
-//SEND GRID
-// const transporter = nodemailer.createTransport(
-//   sendgridTransport({
-//     auth: {
-//       api_key:`${process.env.SENDGRID_API}`
-//        ,
-//     },
-//   })
-// );
-
-exports.signup = async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      const error = new Error("validation Failed");
-      error.statusCode = 422;
-      error.data = errors.array();
-      throw error;
-    }
-    const { firstName, lastName, email, password, confirmPassword } = req.body;
-    const hashedPw = await bcrypt.hash(password, 12);
-    const user = new User({
-      email: email,
-      firstName: firstName,
-      lastName: lastName,
-      password: hashedPw,
-      confirmPassword: confirmPassword,
-    });
-
-    const savedUser = await user.save();
-
-    await mailTransporter
-      .sendMail({
-        from: `${process.env.SENDING_EMAIL}`,
-        to: savedUser.email,
-        subject: "Welcome in our application",
-        text: "This mail send to you as a welcome message for registering in our application",
-      })
-      .then(() => {
-        console.log("suucced sending");
-      });
-
-    res.status(201).json({
-      message: "Success,User Created",
-      savedUser: savedUser,
-    });
-  } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
-    next(err);
-  }
-};
-
-exports.login = async (req, res, next) => {
-  const { email, password } = req.body;
-  let loadedUser;
-  try {
-    const user = await User.findOne({ email: email });
-    if (!user) {
-      const error = new Error("this is Email Not Found");
-      error.statusCode = 401;
-      throw error;
-    }
-    loadedUser = user;
-
-    const isEqual = await bcrypt.compare(password, user.password);
-
-    if (!isEqual) {
-      const error = new Error("wrong password , Try Again");
-      error.statusCode = 401;
-      throw error;
-    }
-    const token = jwt.sign(
-      {
-        email: loadedUser.email,
-        userId: loadedUser._id.toString(),
-      },
-      "secretkeytoencryptthetoken",
-      { expiresIn: '7d' }
-    );
-
-    res.status(200).json({
-      message: "Login Success",
-      token: token,
-      userId: loadedUser._id.toString(),
-    });
-  } catch (error) {
-    if (!error.statusCode) {
-      error.statusCode = 500;
-    }
-    next(error);
-  }
-};
-
-exports.passwordReset = async (req, res, next) => {
-  try {
-    const { email } = req.body;
-    let randomCode;
-    const userExists = await User.findOne({ email: email });
-    if (!userExists) {
-      const error = new Error("this is Email Not Found");
-      error.statusCode = 401;
-      throw error;
-    }
-    randomCode = Math.floor(100000 + Math.random() * 900000)
-    const resetToken = jwt.sign(
-      {
-        _id: userExists._id,
-        firstName: userExists.firstName,
-        email: userExists.email,
-        code: randomCode,
-      },
-      "secretkeytoencryptthetoken",
-      { expiresIn: "1h" }
-    );
-    userExists.resetToken = resetToken;
-    userExists.resetTokenExpiration = Date.now() + 3600000;
-    const savedUser = await userExists.save();
-    const subject = `Reset Password`;
-    // const body = `This message come to you because you Want to reset your password with code below ${email}`;
-    const html = `This message come to you because you Want to reset your password with code below ${email}<br><h1>${randomCode}</h1>`;
-    await mailTransporter.sendMail({
-      to: savedUser.email,
-      from: `${process.env.SENDING_EMAIL}`,
-      html: html,
-      subject: subject,
-    });
-
-    res
-      .status(200)
-      .json({
-        message: "Reset Password",
-        code: randomCode,
-        resetToken: resetToken,
-      });
-  } catch (error) {
-    if (!error.statusCode) {
-      error.statusCode = 500;
-    }
-    next(error);
-  }
-};
-
-exports.postNewPassword = async (req, res, next) => {
-  try {
-    const { resetToken, newPassword } = req.body;
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-      const error = new Error("Reset Failed");
-      error.statusCode = 422;
-      error.data = errors.array();
-      throw error;
-    }
-    const userMatch = await User.findOne({
-
-        resetToken: resetToken,
-        resetTokenExpiration: {$gt:Date.now()},
-    
-    });
-    
-   if (!userMatch) {
-     const error = new Error("Something wrong , make a reset again..!");
-     error.statusCode = 401;
-     throw error;
-   }
-   
-    const hashPw = await bcrypt.hash(newPassword, 12);
-     userMatch.password = hashPw;
-     userMatch.resetToken = undefined;
-     userMatch.resetTokenExpiration = undefined;
-     await userMatch.save();
-     res.status(200).json({message:"Success Change to a new password"})
-  } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
-    next(err);
-  }
+		const hashPw = await bcrypt.hash(newPassword, 12);
+		userMatch.password = hashPw;
+		userMatch.resetToken = undefined;
+		userMatch.resetTokenExpiration = undefined;
+		await userMatch.save();
+		res.status(200).json({ message: 'Success Change to a new password' });
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
 };
 
 // sendGridMail.setApiKey(`${process.env.SENDGRID_API}`);
@@ -558,4 +346,3 @@ exports.postNewPassword = async (req, res, next) => {
 //     );
 
 // }
->>>>>>> 0c02d5152a67b9c6629d3d97d3cdf6ffaee0b067

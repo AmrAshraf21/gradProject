@@ -1,45 +1,3 @@
-<<<<<<< HEAD
-{
-  "name": "gradproject",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js",
-    "dev":"nodemon index.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/AmrAshraf21/gradProject.git"
-  },
-  "keywords": [],
-  "author": "",
-  "engines": {
-    "node": "16.8"
-  },
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/AmrAshraf21/gradProject/issues"
-  },
-  "homepage": "https://github.com/AmrAshraf21/gradProject#readme",
-  "dependencies": {
-    "@sendgrid/mail": "^7.7.0",
-    "bcrypt": "^5.1.0",
-    "body-parser": "^1.20.1",
-    "crypto": "^1.0.1",
-    "dotenv": "^16.0.3",
-    "express": "^4.18.2",
-    "express-validator": "^6.14.2",
-    "jsonwebtoken": "^8.5.1",
-    "mongoose": "^6.7.2",
-    "nodemailer": "^6.8.0"
-  },
-  "devDependencies": {
-    "nodemailer-sendgrid-transport": "^0.2.0",
-    "nodemon": "^2.0.20"
-  }
-}
-=======
 {
   "name": "gradproject",
   "version": "1.0.0",
@@ -47,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js"
+    "start": "node index.js",
+    "dev":"nodemon index.js"
   },
   "repository": {
     "type": "git",
@@ -80,4 +39,3 @@
     "nodemon": "^2.0.20"
   }
 }
->>>>>>> 0c02d5152a67b9c6629d3d97d3cdf6ffaee0b067

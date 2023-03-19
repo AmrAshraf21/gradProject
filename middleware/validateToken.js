@@ -9,23 +9,26 @@ const validateToken = (req, res, next) => {
 	jwt.verify(token, process.env.SECRET_KEY_JWT, (err, user) => {
 		if (err) return res.status(403).json({ message: 'Token is not valid!' });
 		req.user = user;
+
 		next();
 	});
 };
 
 const verifyTokenAndAuthorization = (req, res, next) => {
 	validateToken(req, res, () => {
-		if (req.user.id === req.params.id || req.user.role === 'user' || req.user.role === 'admin' || req.user.role === 'author') {
+		
+		if (
+			req.user.userId||
+			req.user.role === 'user' ||
+			req.user.role === 'admin' ||
+			req.user.role === 'author'
+		) {
 			next();
 		} else {
 			return res.status(403).json({ message: 'You Are not allowed!' });
 		}
 	});
 };
-<<<<<<< HEAD
-=======
-
->>>>>>> 0c02d5152a67b9c6629d3d97d3cdf6ffaee0b067
 const verifyTokenAdmin = (req, res, next) => {
 	validateToken(req, res, () => {
 		if (req.user.role === 'admin') {
@@ -40,8 +43,4 @@ module.exports = {
 	validateToken,
 	verifyTokenAdmin,
 	verifyTokenAndAuthorization,
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> 0c02d5152a67b9c6629d3d97d3cdf6ffaee0b067
