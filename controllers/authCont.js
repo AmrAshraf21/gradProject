@@ -28,14 +28,15 @@ exports.signup = async (req, res, next) => {
 			error.data = errors.array();
 			throw error;
 		}
-		const { firstName, lastName, email, password, confirmPassword } = req.body;
+		const { firstName, lastName, email, password, confirmPassword,role } = req.body;
 		const hashedPw = await bcrypt.hash(password, 12);
 		const user = new User({
-			email: email,
-			firstName: firstName,
-			lastName: lastName,
 			password: hashedPw,
-			confirmPassword: confirmPassword,
+			email,
+			firstName,
+			lastName,
+			confirmPassword,
+			role
 		});
 
 		const savedUser = await user.save();

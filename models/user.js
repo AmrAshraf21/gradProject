@@ -14,14 +14,11 @@ const userSchema = new Schema({
 	email: {
 		type: String,
 		required: true,
+		unique: true,
 	},
-
 	password: {
 		type: String,
 		required: true,
-	},
-	confirmPassword: {
-		type: String,
 	},
 	role: {
 		type: String,
@@ -38,28 +35,19 @@ const userSchema = new Schema({
 	favorits: {
 		books: [
 			{
-        book_id: {
-					type:Number,
-					ref: 'Book',
-				},
+				type: mongoose.Types.ObjectId,
+				ref: 'Book',
 			},
 		],
 	},
 	wishlist: {
-		books: [
-			{
-        book_id: {
-					type:Number,
-					ref: 'Book',
-				},
-			},
-		],
+		books: [{ type: mongoose.Types.ObjectId, ref: 'Book' }],
 	},
-	read: {
+	alreadyRead: {
 		books: [
 			{
-        book_id: {
-					type: Number,
+				bookId: {
+					type: Schema.Types.ObjectId,
 					ref: 'Book',
 				},
 			},
@@ -68,3 +56,4 @@ const userSchema = new Schema({
 });
 
 module.exports = mongoose.model('User', userSchema);
+

@@ -1,15 +1,25 @@
-const mongoose = require('mongoose');
+const { SchemaType } = require('mongoose');
+const jwt = require('jsonwebtoken');
 const Book = require('../models/book.js');
 const User = require('../models/user.js');
 const { validationResult } = require('express-validator');
 const { verifyTokenAndAuthorization } = require('../middleware/validateToken');
+const { findById } = require('../models/book.js');
 
 exports.getWishlist = async (req, res, next) => {
-	const userId = req.params._id;
 	try {
-		//const user = await User.findById(id);
-		const userWishlist = await User.wishlist.find(userId);
-		return res.status(200).json({ message: "User's wishlist", results: userWishlist });
+		if (!req.user) {
+			return res.status(401).json({ message: 'Login to continue.' });
+		}
+		const { userId } = req.user;
+		const user = await User.findById(userId);
+
+		if (!user) {
+			return res.status(404).json({ message: 'User not found.' });
+		}
+		const { wishlist } = await User.findById(userId).populate({ path: 'wishlist.books', model: 'Book' }).exec();
+
+		return res.status(200).json({ message: "User's wishlist", results: wishlist });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -18,48 +28,29 @@ exports.getWishlist = async (req, res, next) => {
 	}
 };
 
-// exports.getWishlist = async (req, res, next) => {
-//   const userId = req.params._Id;
-//   try {
-//     const user = await User.findById(userId);
-//     const userWishlist = await user.find({ wishlist: wishlist});
-//     if (userWishlist.isEmpty())
-//     {
-//       return res.status(200).json({ message: "User's wishlist is empty", results: userWishlist });
-//     } else {
-//     return res.status(200).json({ message: "successfully retrived user's wishlist", results: userWishlist });
-//     }
-//   } catch (err) {
-//     if (!err.statusCode) {
-//       err.statusCode = 500;
-//     }
-//     next (err);
-//   }
-// };
-
 exports.addToWishlist = async (req, res, next) => {
 	try {
 		const userId = req.user.userId;
-
 		const user = await User.findById(userId);
-
 		if (!req.user) {
-			return res.status(401).json({ message: 'You must be logged in to add books to your wishlist.' });
+			return res.status(401).json({ message: 'Login to continue.' });
 		}
 		if (!user) {
-			return res.status(404).json({ message: 'User not found' });
+			return res.status(404).json({ message: 'User not found.' });
 		}
 
-		const bookId = req.body.book_id;
-		const book = await Book.findOne({ book_id: bookId });
-		const alreadyAdded = user.wishlist.books.find((book) => book.book_id === bookId);
+		const { bookId } = req.body;
+		const book = await Book.findById(bookId);
+		if (!book) return res.status(404).json({ message: 'Book Not Found', results: null });
+
+		const alreadyAdded = user.wishlist.books.find((book) => book._id.toString() === bookId.toString());
 
 		if (alreadyAdded) {
-			return res.status(200).json({ message: 'Book already in wishlist', results: user });
+			return res.status(200).json({ message: 'Book already in wishlist', results: user, book });
 		} else {
 			user.wishlist.books.push(book);
 			const updatedUser = await user.save();
-			return res.status(200).json({ message: 'successfully added to wishlist', results: updatedUser });
+			return res.status(200).json({ message: 'successfully added to wishlist', results: updatedUser, book });
 		}
 	} catch (err) {
 		if (!err.statusCode) {
@@ -70,14 +61,20 @@ exports.addToWishlist = async (req, res, next) => {
 };
 
 exports.removeFromWishlist = async (req, res, next) => {
-	const { userId } = req.user;
-	const { book_id } = req.body;
 	try {
-		if (!req.user) {
-			return res.status(401).json({ message: 'You must be logged in to add books to your wishlist.' });
-		}
-		
-		const user = await User.findOneAndUpdate({ _id: userId }, { $pull: { books: { book_id } } },{new:true});
+		if (!req.user) return res.status(401).json({ message: 'Please Login to remove', results: null });
+
+		const { userId } = req.user;
+		const { bookId } = req.body;
+		const user = await User.findById(userId);
+		const book = await Book.findById(bookId);
+		if (!book) return res.status(401).json({ message: 'Book not found', results: null });
+
+		if (!user.wishlist.books) return res.status(401).json({ message: 'No Book in wishlist', results: null });
+		user.wishlist.books.pull(book);
+		//const savedAfterRemove = await User.findById(userId).populate({ path: 'wishlist.books', model: 'Book' }).exec();
+
+		await user.save();
 
 		return res.status(200).json({ message: 'successfully removed from wishlist', results: user });
 	} catch (err) {
@@ -89,15 +86,19 @@ exports.removeFromWishlist = async (req, res, next) => {
 };
 
 exports.getFavorits = async (req, res, next) => {
-	const { _id } = req.user;
 	try {
-		const user = await User.findById(_id);
-		const userFavorits = await user.favorits.find();
-		if (userFavorits.isEmpty()) {
-			return res.status(200).json({ message: "User's favorits is empty", results: userFavorits });
-		} else {
-			return res.status(200).json({ message: "successfully retrived user's favorits", results: userFavorits });
+		if (!req.user) {
+			return res.status(401).json({ message: 'Login to continue.' });
 		}
+		const { userId } = req.user;
+		const user = await User.findById(userId);
+
+		if (!user) {
+			return res.status(404).json({ message: 'User not found.' });
+		}
+		const { favorits } = await User.findById(userId).populate({ path: 'favorits.books', model: 'Book' }).exec();
+
+		return res.status(200).json({ message: "User's Favorites", results: favorits });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -107,16 +108,27 @@ exports.getFavorits = async (req, res, next) => {
 };
 
 exports.addToFavorits = async (req, res, next) => {
-	const { _id } = req.user;
-	const { bookId } = req.body;
 	try {
-		const user = await User.findById(_id);
-		const alreadyAdded = await user.favorits.find((id) => id.toString() === bookId.toString());
+		const userId = req.user.userId;
+		const user = await User.findById(userId);
+		if (!req.user) {
+			return res.status(401).json({ message: 'Login to continue.' });
+		}
+		if (!user) {
+			return res.status(404).json({ message: 'User not found.' });
+		}
+
+		const bookId = req.body.bookId;
+		const book = await Book.findById(bookId);
+
+		const alreadyAdded = user.favorits.books.find((book) => book._id.toString() === bookId.toString());
 		if (alreadyAdded) {
 			return res.status(200).json({ message: 'Book already in favorits', results: user });
 		} else {
-			let updatedUser = await user.favorits.findByIdAndUpdate(_id, { $push: { favorits: bookId } }, { new: true });
-			return res.status(200).json({ message: 'successfully added to favorits', results: updatedUser });
+			user.favorits.books.push(book);
+			const updatedUser = await user.save();
+			const { favorits, ...others } = updatedUser;
+			return res.status(200).json({ message: 'successfully added to favorits', results: favorits, book });
 		}
 	} catch (err) {
 		if (!err.statusCode) {
@@ -127,11 +139,17 @@ exports.addToFavorits = async (req, res, next) => {
 };
 
 exports.removeFromFavorits = async (req, res, next) => {
-	const { _id } = req.user;
-	const { bookId } = req.body;
 	try {
-		const user = await User.findByIdAndUpdate(_id, { $pull: { favorits: bookId } }, { new: true });
-		return res.status(200).json({ message: 'successfully removed from favorits', results: user });
+		const userId = req.user.userId;
+		const user = await User.findById(userId);
+
+		const bookId = req.body.bookId;
+		const book = await Book.findById(bookId);
+
+		user.favorits.books.pull(book);
+		const savedUser = await user.save();
+		const {favorits} = savedUser
+		return res.status(200).json({ message: 'successfully removed from favorits', results: favorits });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -141,14 +159,17 @@ exports.removeFromFavorits = async (req, res, next) => {
 };
 
 exports.getRead = async (req, res, next) => {
-	const { _id } = req.user;
 	try {
-		const user = await User.findById(_id);
-		const userReadlist = await user.read.find();
-		if (userReadlist.isEmpty()) {
-			return res.status(200).json({ message: 'Read list is empty.', results: user });
+		const userId = req.user.userId;
+		const user = await User.findById(userId);
+		if (!req.user) {
+			return res.status(401).json({ message: 'Login to continue.' });
 		}
-		return res.status(200).json({ message: "successfully retrived user's Read.", results: userReadlist });
+		if (!user) {
+			return res.status(404).json({ message: 'User not found.' });
+		}
+		const userAlreadyRead = user.alreadyRead.books;
+		return res.status(200).json({ message: "Successfully retrieved user's already read", results: userAlreadyRead });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -158,16 +179,26 @@ exports.getRead = async (req, res, next) => {
 };
 
 exports.addToRead = async (req, res, next) => {
-	const { _id } = req.user;
-	const { bookId } = req.body;
 	try {
-		const user = await User.findById(_id);
-		const alreadyAdded = await user.read.find((id) => id.toString() === bookId.toString());
+		const userId = req.user.userId;
+		const user = await User.findById(userId);
+		if (!req.user) {
+			return res.status(401).json({ message: 'Login to continue.' });
+		}
+		if (!user) {
+			return res.status(404).json({ message: 'User not found.' });
+		}
+
+		const bookId = req.body.bookId;
+		const book = await Book.findById(bookId);
+
+		const alreadyAdded = user.alreadyRead.books.find((id) => id === bookId);
 		if (alreadyAdded) {
-			return res.status(200).json({ message: 'Book already in read list', results: user });
+			return res.status(200).json({ message: 'Book already in already read', results: user });
 		} else {
-			let updatedUser = await User.findByIdAndUpdate(_id, { $push: { read: bookId } }, { new: true });
-			return res.status(200).json({ message: 'successfully added to read list', results: updatedUser });
+			user.alreadyRead.books.push(book);
+			const updatedUser = await user.save();
+			return res.status(200).json({ message: 'successfully added to already read', results: updatedUser });
 		}
 	} catch (err) {
 		if (!err.statusCode) {
@@ -178,11 +209,17 @@ exports.addToRead = async (req, res, next) => {
 };
 
 exports.removeFromRead = async (req, res, next) => {
-	const { _id } = req.user;
-	const { bookId } = req.body;
 	try {
-		const user = await User.findByIdAndUpdate(_id, { $pull: { favorits: bookId } }, { new: true });
-		return res.status(200).json({ message: 'successfully removed from Rad list', results: user });
+		const userId = req.user.userId;
+		const user = await User.findById(userId);
+
+		const bookId = req.body.bookId;
+		const book = await Book.findById(bookId);
+
+		user.alreadyRead.books.pull(book);
+		await user.save();
+
+		return res.status(200).json({ message: 'successfully removed from already read', results: user });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;

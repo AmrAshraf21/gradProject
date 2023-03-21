@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
 
 const validateToken = (req, res, next) => {
-	const authHeader = req.headers.token;
+	
+	const authHeader = req.headers.authorization
 	if (!authHeader) return res.status(401).json({ message: 'You Are Not Authenticated!' });
 
 	const token = authHeader.split(' ')[1];
@@ -16,13 +17,7 @@ const validateToken = (req, res, next) => {
 
 const verifyTokenAndAuthorization = (req, res, next) => {
 	validateToken(req, res, () => {
-		
-		if (
-			req.user.userId||
-			req.user.role === 'user' ||
-			req.user.role === 'admin' ||
-			req.user.role === 'author'
-		) {
+		if (req.user.userId  || req.user.role === 'user' || req.user.role === 'admin' || req.user.role === 'author') {
 			next();
 		} else {
 			return res.status(403).json({ message: 'You Are not allowed!' });

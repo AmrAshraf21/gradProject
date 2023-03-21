@@ -132,9 +132,6 @@ exports.updateBook = async (req, res, next) => {
   }
 };
 
-/**
- * ! Must Add a limit and pagination on get all books
- */
 exports.getAllBooks = async (req, res, next) => {
   const currentPage = +req.query.page || 1;
   const perPage = 20;
