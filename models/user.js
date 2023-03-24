@@ -29,26 +29,32 @@ const userSchema = new Schema({
   },
   
   favorits: {
-    books: [
-      {
-        bookId: {
-          type: Schema.Types.ObjectId,
-          ref: 'Book'
-        }
-      }
-    ]
-  },
+		books: [
+			{
+				type: mongoose.Types.ObjectId,
+				ref: 'Book',
+			},
+		],
+	},
   wishlist: {
+		books: [
+			{
+				type: mongoose.Types.ObjectId,
+				ref: 'Book',
+			},
+		],
+	},
+  alreadyRead: {
     books: [
       {
-        bookId: {
-          type: Schema.Types.ObjectId,
-          ref: 'Book'
-        }
-      }
-    ]
+        type: mongoose.Types.ObjectId,
+        ref: 'Book',
+      },
+    ],
   },
-  alreadyRead: {
+
+  lists: {
+    type: Array,
     books: [
       {
         bookId: {
