@@ -45,7 +45,7 @@ exports.addToWishlist = async (req, res, next) => {
 		const alreadyAdded = user.wishlist.books.find((book) => book._id.toString() === bookId.toString());
 
 		if (alreadyAdded) {
-			return res.status(200).json({ message: 'Book already in wishlist', results: user, book });
+			return res.status(200).json({ message: 'Book already in wishlist', results: user });
 		} else {
 			user.wishlist.books.push(book);
 			const updatedUser = await user.save();
@@ -119,7 +119,7 @@ exports.addToFavorits = async (req, res, next) => {
 		const alreadyAdded = user.favorits.books.find((book) => book._id.toString() === bookId.toString());
 
 		if (alreadyAdded) {
-			return res.status(200).json({ message: 'Book already in favorits', results: user, book });
+			return res.status(200).json({ message: 'Book already in favorits', results: user });
 		} else {
 			user.favorits.books.push(book);
 			const updatedUser = await user.save();
@@ -193,7 +193,7 @@ exports.addToRead = async (req, res, next) => {
 		const alreadyAdded = user.alreadyRead.books.find((book) => book._id.toString() === bookId.toString());
 
 		if (alreadyAdded) {
-			return res.status(200).json({ message: 'Book already in already read', results: user, book });
+			return res.status(200).json({ message: 'Book already in already read', results: user });
 		} else {
 			user.alreadyRead.books.push(book);
 			const updatedUser = await user.save();
