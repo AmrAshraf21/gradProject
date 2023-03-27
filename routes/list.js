@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const listController = require("../controllers/listCont");
-const { verifyTokenAndAuthorization, validateToken } = require('../middleware/validateToken');
+const { verifyTokenAndAuthorization } = require('../middleware/validateToken');
 
 router.get('/wishlist', verifyTokenAndAuthorization, listController.getWishlist);
 router.put('/addToWishlist', verifyTokenAndAuthorization, listController.addToWishlist);

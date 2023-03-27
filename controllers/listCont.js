@@ -1,9 +1,7 @@
 const mongoose = require("mongoose");
-const jwt = require("jsonwebtoken");
 const Book = require('../models/book.js');
 const User = require('../models/user.js');
 const { validationResult } = require('express-validator');
-const { findById } = require("../models/book.js");
 
 exports.getWishlist = async (req, res, next) => {
 	try {

@@ -57,10 +57,8 @@ const userSchema = new Schema({
     type: Array,
     books: [
       {
-        bookId: {
-          type: Schema.Types.ObjectId,
-          ref: 'Book'
-        }
+        type: Schema.Types.ObjectId,
+        ref: 'Book'
       }
     ]
   }
