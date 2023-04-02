@@ -41,12 +41,12 @@ exports.signup = async (req, res, next) => {
       error.data = errors.array();
       throw error;
     }
-    if (!req.file) {
-      const error = new Error('No image provided.');
-      error.statusCode = 422;
-      throw error;
-    }
-    const profilePic = req.file.path;
+    // if (!req.file) {
+    //   const error = new Error('No image provided.');
+    //   error.statusCode = 422;
+    //   throw error;
+    // }
+    // const profilePic = req.file.path;
     const { firstName, lastName, email, password, confirmPassword } = req.body;
     const hashedPw = await bcrypt.hash(password, 12);
     const user = new User({
@@ -55,7 +55,7 @@ exports.signup = async (req, res, next) => {
       lastName: lastName,
       password: hashedPw,
       confirmPassword: confirmPassword,
-      profilePicture: profilePic
+      //profilePicture: profilePic
     });
 
     const savedUser = await user.save();
