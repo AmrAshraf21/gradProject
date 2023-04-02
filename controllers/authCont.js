@@ -1,12 +1,15 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { validationResult } = require("express-validator");
-const User = require("../models/user.js");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+const fs = require('fs');
+const path = require('path');
 // const sendgridTransport = require("nodemailer-sendgrid-transport");
 const dotenv = require("dotenv");
 dotenv.config();
+
+const User = require("../models/user.js");
 
 let mailTransporter = nodemailer.createTransport({
   service: "gmail",
@@ -38,6 +41,12 @@ exports.signup = async (req, res, next) => {
       error.data = errors.array();
       throw error;
     }
+    if (!req.file) {
+      const error = new Error('No image provided.');
+      error.statusCode = 422;
+      throw error;
+    }
+    const profilePic = req.file.path;
     const { firstName, lastName, email, password, confirmPassword } = req.body;
     const hashedPw = await bcrypt.hash(password, 12);
     const user = new User({
@@ -46,6 +55,7 @@ exports.signup = async (req, res, next) => {
       lastName: lastName,
       password: hashedPw,
       confirmPassword: confirmPassword,
+      profilePicture: profilePic
     });
 
     const savedUser = await user.save();
@@ -175,11 +185,10 @@ exports.postNewPassword = async (req, res, next) => {
     }
     const userMatch = await User.findOne({
 
-        resetToken: resetToken,
-        resetTokenExpiration: {$gt:Date.now()},
+      resetToken: resetToken,
+      resetTokenExpiration: {$gt:Date.now()},
     
-    });
-    
+    });   
    if (!userMatch) {
      const error = new Error("Something wrong , make a reset again..!");
      error.statusCode = 401;
@@ -192,6 +201,45 @@ exports.postNewPassword = async (req, res, next) => {
      userMatch.resetTokenExpiration = undefined;
      await userMatch.save();
      res.status(200).json({message:"Success Change to a new password"})
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.getEditProfile = async (req, res, next) => {
+  try {
+    const { userId } = req.user;
+    const user = await User.findById(userId);
+    return res.status(200).json({ message: 'edit user profile', results: user });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.postEditProfile = async (req, res, next) => {
+  try {
+    const { userId, updatedFName, updatedLName, updatedEmail } = req.body;
+    const updatedProfilePic = req.file;
+    const user = User.findById(userId);
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+      const error = new Error('profile update failed');
+      error.statusCode = 422;
+      error.data = errors.array();
+      throw error;
+    }
+    user.profilePicture = updatedProfilePic;
+    user.firstName = updatedFName;
+    user.lastName = updatedLName;
+    user.email = updatedEmail;
+    await user.save();
+    return res.status(200).json({message: 'profile updating successfully.', results: user});
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

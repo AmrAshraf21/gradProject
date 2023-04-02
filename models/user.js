@@ -20,6 +20,14 @@ const userSchema = new Schema({
     type: String,
     required:true
   },
+  profilePicture: {
+    type: String,
+    required: false
+  },
+  role: {
+		type: String,
+		default: 'user',
+	},
   
   resetToken:{
     type:String,
@@ -33,8 +41,8 @@ const userSchema = new Schema({
 			{
 				type: mongoose.Types.ObjectId,
 				ref: 'Book',
-			},
-		],
+			}
+		]
 	},
   wishlist: {
 		books: [
