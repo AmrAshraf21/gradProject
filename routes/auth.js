@@ -3,6 +3,7 @@ const { body, check } = require("express-validator");
 const router = express.Router();
 const User = require("../models/user");
 const authCont = require("../controllers/authCont");
+const { verifyTokenAndAuthorization } = require('../middleware/validateToken');
 
 router.post(
   "/signup",
@@ -42,5 +43,24 @@ router.post(
   ],
   authCont.postNewPassword
 );
+
+router.get('/updateprofile', verifyTokenAndAuthorization, authCont.getEditProfile);
+router.put('/updateprofile',
+  [
+    check("email")
+      .isEmail()
+      .normalizeEmail()
+      .withMessage("Please Enter a Valid Email")
+      .custom((value, { req }) => {
+        return User.findOne({ email: value }).then((userDoc) => {
+          if (userDoc) {
+            return Promise.reject("Email Address is Already Exists");
+          }
+        });
+      }),
+    check("firstName").trim().not().isEmpty(),
+    check("lastName").trim().not().isEmpty(),
+  ],
+  verifyTokenAndAuthorization, authCont.putEditProfile);
 
 module.exports = router;

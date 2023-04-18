@@ -41,12 +41,12 @@ exports.signup = async (req, res, next) => {
       error.data = errors.array();
       throw error;
     }
-    // if (!req.file) {
-    //   const error = new Error('No image provided.');
-    //   error.statusCode = 422;
-    //   throw error;
-    // }
-    // const profilePic = req.file.path;
+    if (!req.file) {
+      const error = new Error('No image provided.');
+      error.statusCode = 422;
+      throw error;
+    }
+    const profilePic = req.file.path;
     const { firstName, lastName, email, password, confirmPassword } = req.body;
     const hashedPw = await bcrypt.hash(password, 12);
     const user = new User({
@@ -55,7 +55,7 @@ exports.signup = async (req, res, next) => {
       lastName: lastName,
       password: hashedPw,
       confirmPassword: confirmPassword,
-      //profilePicture: profilePic
+      profilePicture: profilePic
     });
 
     const savedUser = await user.save();
@@ -212,7 +212,9 @@ exports.postNewPassword = async (req, res, next) => {
 exports.getEditProfile = async (req, res, next) => {
   try {
     const { userId } = req.user;
+    console.log(userId);
     const user = await User.findById(userId);
+    console.log(user);
     return res.status(200).json({ message: 'edit user profile', results: user });
   } catch (err) {
     if (!err.statusCode) {
@@ -222,24 +224,25 @@ exports.getEditProfile = async (req, res, next) => {
   }
 };
 
-exports.postEditProfile = async (req, res, next) => {
+exports.putEditProfile = async (req, res, next) => {
   try {
     const { userId, updatedFName, updatedLName, updatedEmail } = req.body;
     const updatedProfilePic = req.file;
-    const user = User.findById(userId);
+    const user = await User.findById(userId);
     const errors = validationResult(req);
     if(!errors.isEmpty()){
       const error = new Error('profile update failed');
       error.statusCode = 422;
       error.data = errors.array();
       throw error;
-    }
+    };
     user.profilePicture = updatedProfilePic;
     user.firstName = updatedFName;
     user.lastName = updatedLName;
     user.email = updatedEmail;
     await user.save();
-    return res.status(200).json({message: 'profile updating successfully.', results: user});
+    console.log(user);
+    return res.status(200).json({ message: 'profile updated successfully.', results: user });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
