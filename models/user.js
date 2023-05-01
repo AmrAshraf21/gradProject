@@ -31,7 +31,9 @@ const userSchema = new Schema({
 	resetTokenExpiration: {
 		type: Date,
 	},
-
+	image: {
+		type: String
+	 },
 	favorits: {
 		books: [
 			{
