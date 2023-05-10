@@ -46,35 +46,32 @@ exports.signup = async (req, res, next) => {
       error.statusCode = 422;
       throw error;
     }
-    const profilePic = req.file.path;
-    const { firstName, lastName, email, password, confirmPassword } = req.body;
-    const hashedPw = await bcrypt.hash(password, 12);
-    const user = new User({
-      email: email,
-      firstName: firstName,
-      lastName: lastName,
-      password: hashedPw,
-      confirmPassword: confirmPassword,
-      profilePicture: profilePic
-    });
+    const { firstName, lastName, email, password, role } = req.body;
+		const hashedPw = await bcrypt.hash(password, 12);
+		const user = new User({
+			password: hashedPw,
+			email,
+			firstName,
+			lastName,
+			role,
+			image: req.file.path.replace('\\', '/')
+		});
 
-    const savedUser = await user.save();
-
-    await mailTransporter
-      .sendMail({
-        from: `${process.env.SENDING_EMAIL}`,
-        to: savedUser.email,
-        subject: "Welcome in our application",
-        text: "This mail send to you as a welcome message for registering in our application",
-      })
-      .then(() => {
-        console.log("suucced sending");
-      });
-
-    res.status(201).json({
-      message: "Success,User Created",
-      savedUser: savedUser,
-    });
+		const savedUser = await user.save();
+		await mailTransporter
+			.sendMail({
+				from: `${process.env.SENDING_EMAIL}`,
+				to: savedUser.email,
+				subject: 'Welcome in our application',
+				text: 'This mail send to you as a welcome message for registering in our application',
+			})
+			.then(() => {
+				console.log('succeed sending');
+			});
+		return res.status(201).json({
+			message: 'Success,User Created',
+			savedUser: savedUser,
+		});
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -212,10 +209,9 @@ exports.postNewPassword = async (req, res, next) => {
 exports.getEditProfile = async (req, res, next) => {
   try {
     const { userId } = req.user;
-    console.log(userId);
     const user = await User.findById(userId);
-    console.log(user);
-    return res.status(200).json({ message: 'edit user profile', results: user });
+		const { password, role, ...other } = user._doc;
+		return res.status(200).json({ message: 'Edit User Profile', results: other });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -224,31 +220,71 @@ exports.getEditProfile = async (req, res, next) => {
   }
 };
 
-exports.putEditProfile = async (req, res, next) => {
-  try {
-    const { userId, updatedFName, updatedLName, updatedEmail } = req.body;
-    const updatedProfilePic = req.file;
-    const user = await User.findById(userId);
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-      const error = new Error('profile update failed');
-      error.statusCode = 422;
-      error.data = errors.array();
-      throw error;
-    };
-    user.profilePicture = updatedProfilePic;
-    user.firstName = updatedFName;
-    user.lastName = updatedLName;
-    user.email = updatedEmail;
-    await user.save();
-    console.log(user);
-    return res.status(200).json({ message: 'profile updated successfully.', results: user });
-  } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
-    next(err);
-  }
+exports.patchEditProfile = async (req, res, next) => {
+	const errors = validationResult(req);
+
+	try {
+		if (!errors.isEmpty()) {
+			const error = new Error('Validation Error');
+			error.data = errors.array();
+			error.statusCode = 422;
+			throw error;
+		}
+		let image;
+		const { userId } = req.user;
+		const { firstName, lastName, email } = req.body;
+		
+		if (req.file) {
+			image = req.file.path.replace('\\', '/');
+		}
+		if (!image) {
+			const error = new Error('No Image Picked');
+			error.statusCode = 422;
+			throw error;
+		}
+
+		 const updateUser = await User.findById(userId);
+
+		 console.log(updateUser);
+		 if(!updateUser){
+		 	const error = new Error("Could Not Find a User to update his Information");
+		 	error.statusCode = 404;
+		 	throw error;
+		 }
+		
+		 if (updateUser._id.toString() !== userId) {
+		 	const error = new Error("Not Authorized");
+		 	error.statusCode = 403;
+			
+		 	throw error;
+		   }
+		   console.log(image);
+		   console.log("-----");
+		   console.log(updateUser.image);
+		//   if(image !== updateUser.image || image === updateUser.image){
+		//  	clearImage(updateUser.image);
+		//  }
+		 updateUser.image = image;
+		 updateUser.firstName = firstName;
+		 updateUser.lastName = lastName;
+		 updateUser.email= email;
+
+		    console.log(updateUser);
+		await updateUser.save();
+		return res.status(201).json({message:"profile updated successfully.",results:updateUser})
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+const clearImage = (filePath) => {
+	filePath = path.join(__dirname, '..', filePath);
+	fs.unlink(filePath, (err) => {
+		console.log(err);
+	});
 };
 
 // sendGridMail.setApiKey(`${process.env.SENDGRID_API}`);

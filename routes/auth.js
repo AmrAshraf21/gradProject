@@ -12,8 +12,8 @@ router.post(
       .isEmail()
       .normalizeEmail()
       .withMessage("Please Enter a Valid Email")
-      .custom((value, { req }) => {
-        return User.findOne({ email: value }).then((userDoc) => {
+      .custom(async(value, { req }) => {
+        return await User.findOne({ email: value }).then((userDoc) => {
           if (userDoc) {
             return Promise.reject("Email Address is Already Exists");
           }
@@ -25,6 +25,7 @@ router.post(
       .withMessage("please enter a strong password"),
     check("firstName").trim().not().isEmpty(),
     check("lastName").trim().not().isEmpty(),
+    check('image',"Please Provide an Image")
   ],
   authCont.signup
 );
@@ -45,22 +46,22 @@ router.post(
 );
 
 router.get('/updateprofile', verifyTokenAndAuthorization, authCont.getEditProfile);
-router.put('/updateprofile',
+router.patch('/updateprofile',
   [
     check("email")
       .isEmail()
       .normalizeEmail()
       .withMessage("Please Enter a Valid Email")
-      .custom((value, { req }) => {
-        return User.findOne({ email: value }).then((userDoc) => {
+      .custom(async(value, { req }) => {
+        return await User.findOne({ email: value }).then((userDoc) => {
           if (userDoc) {
             return Promise.reject("Email Address is Already Exists");
           }
         });
       }),
-    check("firstName").trim().not().isEmpty(),
-    check("lastName").trim().not().isEmpty(),
+    check("firstName","Please provide first name").trim().not().isEmpty(),
+    check("lastName","please provide last name").trim().not().isEmpty(),
   ],
-  verifyTokenAndAuthorization, authCont.putEditProfile);
+  verifyTokenAndAuthorization, authCont.patchEditProfile);
 
 module.exports = router;

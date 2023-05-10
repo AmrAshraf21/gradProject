@@ -11,12 +11,18 @@ const { setHeaders } = require('./middleware/headerMiddleware');
 const { errorHandler } = require('./middleware/errorMiddleware');
 const { verifyTokenAndAuthorization } = require('./middleware/validateToken');
 
+const authRoutes = require('./routes/auth');
+const bookRoutes = require('./routes/book');
+const listRoutes = require('./routes/list');
+
+dotenv.config();
+
 const fileStorage = multer.diskStorage({
 	destination: (req, file, cb) => {
 	  cb(null, 'images');
 	},
 	filename: (req, file, cb) => {
-	  cb(null, new Date().toISOString() + '-' + file.originalname);
+		cb(null, new Date().toISOString().replace(/:/g, '-') + '-' + file.originalname);
 	}
   });
   
@@ -38,13 +44,8 @@ app.use(
 );
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
-const authRoutes = require('./routes/auth');
-const bookRoutes = require('./routes/book');
-const listRoutes = require('./routes/list');
-
-dotenv.config();
-
 app.use(express.urlencoded({ extended: false }));
+
 app.use(setHeaders);
 
 app.use('/auth', authRoutes);
