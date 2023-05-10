@@ -5,7 +5,6 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const fs = require('fs');
 const path = require('path');
-// const sendgridTransport = require("nodemailer-sendgrid-transport");
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -63,7 +62,7 @@ exports.signup = async (req, res, next) => {
 				from: `${process.env.SENDING_EMAIL}`,
 				to: savedUser.email,
 				subject: 'Welcome in our application',
-				text: 'This mail send to you as a welcome message for registering in our application',
+				text: 'This mail was sent to you as a welcome message for registering in our application',
 			})
 			.then(() => {
 				console.log('succeed sending');
@@ -101,14 +100,15 @@ exports.login = async (req, res, next) => {
     }
     const token = jwt.sign(
       {
-        email: loadedUser.email,
         userId: loadedUser._id.toString(),
+        role: loadedUser.role,
+        email: loadedUser.email
       },
-      "secretkeytoencryptthetoken",
+      process.env.SECRET_KEY_JWT,
       { expiresIn: '7d' }
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Login Success",
       token: token,
       userId: loadedUser._id.toString(),
@@ -127,11 +127,11 @@ exports.passwordReset = async (req, res, next) => {
     let randomCode;
     const userExists = await User.findOne({ email: email });
     if (!userExists) {
-      const error = new Error("this is Email Not Found");
+      const error = new Error('Email Not Found');
       error.statusCode = 401;
       throw error;
     }
-    randomCode = Math.floor(100000 + Math.random() * 900000)
+    randomCode = Math.floor(100000 + Math.random() * 900000);
     const resetToken = jwt.sign(
       {
         _id: userExists._id,
@@ -139,7 +139,7 @@ exports.passwordReset = async (req, res, next) => {
         email: userExists.email,
         code: randomCode,
       },
-      "secretkeytoencryptthetoken",
+      process.end.SECRET_KEY_JWT,
       { expiresIn: "1h" }
     );
     userExists.resetToken = resetToken;
@@ -147,21 +147,19 @@ exports.passwordReset = async (req, res, next) => {
     const savedUser = await userExists.save();
     const subject = `Reset Password`;
     // const body = `This message come to you because you Want to reset your password with code below ${email}`;
-    const html = `This message come to you because you Want to reset your password with code below ${email}<br><h1>${randomCode}</h1>`;
+    const html = `This message came to you because you Want to reset your password with code below ${email}<br><h1>${randomCode}</h1>`;
     await mailTransporter.sendMail({
       to: savedUser.email,
       from: `${process.env.SENDING_EMAIL}`,
       html: html,
-      subject: subject,
+      subject: subject
     });
 
-    res
-      .status(200)
-      .json({
-        message: "Reset Password",
-        code: randomCode,
-        resetToken: resetToken,
-      });
+    res.status(200).json({
+      message: "Reset Password",
+      code: randomCode,
+      resetToken: resetToken,
+    });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -181,13 +179,12 @@ exports.postNewPassword = async (req, res, next) => {
       throw error;
     }
     const userMatch = await User.findOne({
-
       resetToken: resetToken,
-      resetTokenExpiration: {$gt:Date.now()},
-    
-    });   
+      resetTokenExpiration: { $gt:Date.now() }
+    });
+
    if (!userMatch) {
-     const error = new Error("Something wrong , make a reset again..!");
+     const error = new Error('Something went wrong, please try again.');
      error.statusCode = 401;
      throw error;
    }
@@ -197,7 +194,7 @@ exports.postNewPassword = async (req, res, next) => {
      userMatch.resetToken = undefined;
      userMatch.resetTokenExpiration = undefined;
      await userMatch.save();
-     res.status(200).json({message:"Success Change to a new password"})
+     res.status(200).json({message:'Success Change to a new password'})
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -243,35 +240,36 @@ exports.patchEditProfile = async (req, res, next) => {
 			throw error;
 		}
 
-		 const updateUser = await User.findById(userId);
+		const updateUser = await User.findById(userId);
 
-		 console.log(updateUser);
-		 if(!updateUser){
-		 	const error = new Error("Could Not Find a User to update his Information");
+		console.log(updateUser);
+		if(!updateUser){
+		 	const error = new Error("User Not Found.");
 		 	error.statusCode = 404;
 		 	throw error;
-		 }
+		}
 		
-		 if (updateUser._id.toString() !== userId) {
-		 	const error = new Error("Not Authorized");
+		if (updateUser._id.toString() !== userId) {
+		  const error = new Error("Not Authorized");
 		 	error.statusCode = 403;
 			
 		 	throw error;
-		   }
-		   console.log(image);
-		   console.log("-----");
-		   console.log(updateUser.image);
+		}
+		console.log(image);
+	  console.log("-----");
+		console.log(updateUser.image);
 		//   if(image !== updateUser.image || image === updateUser.image){
 		//  	clearImage(updateUser.image);
 		//  }
-		 updateUser.image = image;
-		 updateUser.firstName = firstName;
-		 updateUser.lastName = lastName;
-		 updateUser.email= email;
+		updateUser.image = image;
+		updateUser.firstName = firstName;
+		updateUser.lastName = lastName;
+		updateUser.email= email;
 
-		    console.log(updateUser);
+		console.log(updateUser);
+
 		await updateUser.save();
-		return res.status(201).json({message:"profile updated successfully.",results:updateUser})
+		return res.status(201).json({message:"profile updated successfully.", results:updateUser});
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
