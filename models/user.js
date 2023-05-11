@@ -3,22 +3,22 @@ const Book = require('./book');
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
-  firstName:{
-    type:String,
-    required:true,
+  firstName: {
+    type: String,
+    required: true,
   },
-  lastName:{
+  lastName: {
     type:String,
-    required:true
+    required: true
   },
   email: {
     type: String,
-    required:true,
+    required: true,
     unique: true
   },
   password: {
     type: String,
-    required:true
+    required: true
   },
 	image: {
 		type: String,
@@ -29,11 +29,11 @@ const userSchema = new Schema({
 		default: 'user',
 	},
   
-  resetToken:{
-    type:String,
+  resetToken: {
+    type: String
   },
-  resetTokenExpiration:{
-    type:Date
+  resetTokenExpiration: {
+    type: Date
   },
   
   favorits: {
@@ -61,15 +61,15 @@ const userSchema = new Schema({
     ],
   },
 
-  lists: {
-    type: Array,
-    books: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'Book'
-      }
-    ]
-  }
+//   lists: {
+//     type: Array,
+//     books: [
+//       {
+//         type: Schema.Types.ObjectId,
+//         ref: 'Book'
+//       }
+//     ]
+//   }
 });
 
 module.exports = mongoose.model('User', userSchema);

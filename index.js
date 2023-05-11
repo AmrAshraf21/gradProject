@@ -1,11 +1,10 @@
-const path = require('path');
-
 const mongoose = require('mongoose');
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const multer = require('multer');
+const path = require('path');
 
 const { setHeaders } = require('./middleware/headerMiddleware');
 const { errorHandler } = require('./middleware/errorMiddleware');
@@ -35,9 +34,7 @@ const fileFilter = (req, file, cb) => {
 };
 
 app.use(bodyParser.json());
-app.use(
-  multer({ storage: fileStorage, fileFilter: fileFilter }).single('image')
-);
+app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('image'));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use(express.urlencoded({ extended: false }));

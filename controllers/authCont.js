@@ -21,31 +21,22 @@ let mailTransporter = nodemailer.createTransport({
   },
 });
 
-//SEND GRID
-// const transporter = nodemailer.createTransport(
-//   sendgridTransport({
-//     auth: {
-//       api_key:`${process.env.SENDGRID_API}`
-//        ,
-//     },
-//   })
-// );
-
 exports.signup = async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      const error = new Error("validation Failed");
-      error.statusCode = 422;
-      error.data = errors.array();
-      throw error;
-    }
-    if (!req.file) {
-      const error = new Error('No image provided.');
-      error.statusCode = 422;
-      throw error;
-    }
-    const { firstName, lastName, email, password, role } = req.body;
+	try {
+		const errors = validationResult(req);
+		if (!errors.isEmpty()) {
+			const error = new Error('validation Failed');
+			error.statusCode = 422;
+			error.data = errors.array();
+			throw error;
+		}
+		if (!req.file) {
+			const error = new Error('No Image Provided');
+			error.statusCode = 422;
+			throw error;
+		}
+
+		const { firstName, lastName, email, password, role } = req.body;
 		const hashedPw = await bcrypt.hash(password, 12);
 		const user = new User({
 			password: hashedPw,
@@ -53,7 +44,7 @@ exports.signup = async (req, res, next) => {
 			firstName,
 			lastName,
 			role,
-			image: req.file.path.replace('\\', '/')
+			image: req.file.path.replace('\\', '/'),
 		});
 
 		const savedUser = await user.save();
@@ -62,7 +53,7 @@ exports.signup = async (req, res, next) => {
 				from: `${process.env.SENDING_EMAIL}`,
 				to: savedUser.email,
 				subject: 'Welcome in our application',
-				text: 'This mail was sent to you as a welcome message for registering in our application',
+				text: 'This mail send to you as a welcome message for registering in our application',
 			})
 			.then(() => {
 				console.log('succeed sending');
@@ -71,54 +62,53 @@ exports.signup = async (req, res, next) => {
 			message: 'Success,User Created',
 			savedUser: savedUser,
 		});
-  } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
-    next(err);
-  }
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
 };
 
 exports.login = async (req, res, next) => {
-  const { email, password } = req.body;
-  let loadedUser;
-  try {
-    const user = await User.findOne({ email: email });
-    if (!user) {
-      const error = new Error("this is Email Not Found");
-      error.statusCode = 401;
-      throw error;
-    }
-    loadedUser = user;
+	const { email, password } = req.body;
+	let loadedUser;
+	try {
+		const user = await User.findOne({ email: email });
+		if (!user) {
+			const error = new Error('this is Email Not Found');
+			error.statusCode = 401;
+			throw error;
+		}
+		loadedUser = user;
 
-    const isEqual = await bcrypt.compare(password, user.password);
+		const isEqual = await bcrypt.compare(password, user.password);
 
-    if (!isEqual) {
-      const error = new Error("wrong password , Try Again");
-      error.statusCode = 401;
-      throw error;
-    }
-    const token = jwt.sign(
-      {
-        userId: loadedUser._id.toString(),
-        role: loadedUser.role,
-        email: loadedUser.email
-      },
-      process.env.SECRET_KEY_JWT,
-      { expiresIn: '7d' }
-    );
+		if (!isEqual) {
+			const error = new Error('wrong password , Try Again');
+			error.statusCode = 401;
+			throw error;
+		}
+		const token = jwt.sign(
+			{
+				userId: loadedUser._id.toString(),
+				role: loadedUser.role,
+			},
+			process.env.SECRET_KEY_JWT,
+			{ expiresIn: '7d' }
+		);
 
-    return res.status(200).json({
-      message: "Login Success",
-      token: token,
-      userId: loadedUser._id.toString(),
-    });
-  } catch (error) {
-    if (!error.statusCode) {
-      error.statusCode = 500;
-    }
-    next(error);
-  }
+		return res.status(200).json({
+			message: 'Login Success',
+			token: token,
+			userId: loadedUser._id.toString(),
+		});
+	} catch (error) {
+		if (!error.statusCode) {
+			error.statusCode = 500;
+		}
+		next(error);
+	}
 };
 
 exports.passwordReset = async (req, res, next) => {
@@ -240,36 +230,35 @@ exports.patchEditProfile = async (req, res, next) => {
 			throw error;
 		}
 
-		const updateUser = await User.findById(userId);
+		 const updateUser = await User.findById(userId);
 
-		console.log(updateUser);
-		if(!updateUser){
-		 	const error = new Error("User Not Found.");
+		 console.log(updateUser);
+		 if(!updateUser){
+		 	const error = new Error("Could Not Find a User to update his Information");
 		 	error.statusCode = 404;
 		 	throw error;
-		}
+		 }
 		
-		if (updateUser._id.toString() !== userId) {
-		  const error = new Error("Not Authorized");
+		 if (updateUser._id.toString() !== userId) {
+		 	const error = new Error("Not Authorized");
 		 	error.statusCode = 403;
 			
 		 	throw error;
-		}
-		console.log(image);
-	  console.log("-----");
-		console.log(updateUser.image);
+		   }
+		   console.log(image);
+		   console.log("-----");
+		   console.log(updateUser.image);
 		//   if(image !== updateUser.image || image === updateUser.image){
 		//  	clearImage(updateUser.image);
 		//  }
-		updateUser.image = image;
-		updateUser.firstName = firstName;
-		updateUser.lastName = lastName;
-		updateUser.email= email;
+		 updateUser.image = image;
+		 updateUser.firstName = firstName;
+		 updateUser.lastName = lastName;
+		 updateUser.email= email;
 
-		console.log(updateUser);
-
+		    console.log(updateUser);
 		await updateUser.save();
-		return res.status(201).json({message:"profile updated successfully.", results:updateUser});
+		return res.status(201).json({message:"profile updated successfully.",results:updateUser})
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;

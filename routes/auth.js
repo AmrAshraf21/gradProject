@@ -22,7 +22,7 @@ router.post(
 		check('password').trim().isLength({ min: 5 }).withMessage('please enter a strong password'),
 		check('firstName').trim().not().isEmpty(),
 		check('lastName').trim().not().isEmpty(),
-		check('image',"Please Provide an Image")
+		check('image','Please Provide an Image')
 	],
 	authCont.signup
 );
@@ -57,9 +57,9 @@ router.patch('/updateprofile',
           }
         });
       }),
-    check("firstName","Please provide first name").trim().not().isEmpty(),
-    check("lastName","please provide last name").trim().not().isEmpty(),
+    check('firstName', 'Please provide first name').trim().not().isEmpty(),
+    check('lastName', 'please provide last name').trim().not().isEmpty(),
   ],
   verifyTokenAndAuthorization, authCont.patchEditProfile);
-  
+
 module.exports = router;
