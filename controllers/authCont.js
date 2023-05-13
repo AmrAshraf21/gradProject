@@ -219,7 +219,7 @@ exports.patchEditProfile = async (req, res, next) => {
 		let image;
 		const { userId } = req.user;
 		const { firstName, lastName, email } = req.body;
-		
+
 		if (req.file) {
 			image = req.file.path.replace('\\', '/');
 		}
@@ -229,35 +229,32 @@ exports.patchEditProfile = async (req, res, next) => {
 			throw error;
 		}
 
-		 const updateUser = await User.findById(userId);
+		const updateUser = await User.findByIdAndUpdate(userId, req.body, { new: true, runValidators: false });
 
-		 console.log(updateUser);
-		 if(!updateUser){
-		 	const error = new Error("Could Not Find a User to update his Information");
-		 	error.statusCode = 404;
-		 	throw error;
-		 }
-		
-		 if (updateUser._id.toString() !== userId) {
-		 	const error = new Error("Not Authorized");
-		 	error.statusCode = 403;
-			
-		 	throw error;
-		   }
-		   console.log(image);
-		   console.log("-----");
-		   console.log(updateUser.image);
+		console.log(updateUser);
+		if (!updateUser) {
+			const error = new Error('Could Not Find a User to update his Information');
+			error.statusCode = 404;
+			throw error;
+		}
+
+		if (updateUser._id.toString() !== userId) {
+			const error = new Error('Not Authorized');
+			error.statusCode = 403;
+
+			throw error;
+		}
 		//   if(image !== updateUser.image || image === updateUser.image){
 		//  	clearImage(updateUser.image);
 		//  }
-		 updateUser.image = image;
-		 updateUser.firstName = firstName;
-		 updateUser.lastName = lastName;
-		 updateUser.email= email;
+		// updateUser.image = image;
+		// updateUser.firstName = firstName;
+		// updateUser.lastName = lastName;
+		// updateUser.email = email;
 
-		    console.log(updateUser);
+		console.log(updateUser);
 		await updateUser.save();
-		return res.status(201).json({message:"profile updated successfully.",results:updateUser})
+		return res.status(201).json({ message: 'profile updated successfully.', results: updateUser });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;

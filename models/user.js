@@ -48,10 +48,10 @@ const userSchema = new Schema({
 	alreadyRead: {
 		books: [
 			{
-				bookId: {
+				 
 					type: Schema.Types.ObjectId,
 					ref: 'Book',
-				},
+				
 			},
 		],
 	},
