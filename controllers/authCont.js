@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { validationResult } = require("express-validator");
-const crypto = require("crypto");
+//const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const fs = require('fs');
 const path = require('path');
@@ -209,7 +209,6 @@ exports.getEditProfile = async (req, res, next) => {
 
 exports.patchEditProfile = async (req, res, next) => {
 	const errors = validationResult(req);
-
 	try {
 		if (!errors.isEmpty()) {
 			const error = new Error('Validation Error');
@@ -219,46 +218,56 @@ exports.patchEditProfile = async (req, res, next) => {
 		}
 		let image;
 		const { userId } = req.user;
-		const { firstName, lastName, email } = req.body;
+		//const { firstName, lastName, email } = req.body;
 		
 		if (req.file) {
 			image = req.file.path.replace('\\', '/');
 		}
-		if (!image) {
-			const error = new Error('No Image Picked');
-			error.statusCode = 422;
-			throw error;
-		}
+		// if (!image) {
+		// 	const error = new Error('No Image Picked');
+		// 	error.statusCode = 422;
+		// 	throw error;
+		// }
 
-		 const updateUser = await User.findById(userId);
+		const updateUser = await User.findByIdAndUpdate(userId,
+      {
+        firstName: req.body.newFName,
+        lastName: req.body.newLName,
+        email: req.body.newEmail,
+        image: image
+      },
+      {
+        new: true,
+        runValidators: false
+      });
+      console.log(updateUser);
 
-		 console.log(updateUser);
-		 if(!updateUser){
-		 	const error = new Error("Could Not Find a User to update his Information");
+		if(!updateUser){
+		  const error = new Error("Could Not Find a User to update their Information");
 		 	error.statusCode = 404;
 		 	throw error;
-		 }
+		}
 		
-		 if (updateUser._id.toString() !== userId) {
+		if (updateUser._id.toString() !== userId) {
 		 	const error = new Error("Not Authorized");
 		 	error.statusCode = 403;
 			
 		 	throw error;
-		   }
-		   console.log(image);
-		   console.log("-----");
-		   console.log(updateUser.image);
+		}
+		console.log(image);
+		console.log("-----");
+		console.log(updateUser.image);
 		//   if(image !== updateUser.image || image === updateUser.image){
 		//  	clearImage(updateUser.image);
 		//  }
-		 updateUser.image = image;
-		 updateUser.firstName = firstName;
-		 updateUser.lastName = lastName;
-		 updateUser.email= email;
 
-		    console.log(updateUser);
+/* 		updateUser.image = image;
+		updateUser.firstName = firstName;
+		updateUser.lastName = lastName;
+		updateUser.email= email; */
+
 		await updateUser.save();
-		return res.status(201).json({message:"profile updated successfully.",results:updateUser})
+		return res.status(201).json({message:"profile updated successfully.", results: updateUser});
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -272,6 +281,19 @@ const clearImage = (filePath) => {
 	fs.unlink(filePath, (err) => {
 		console.log(err);
 	});
+};
+
+exports.deleteUser = async (req, res, next) => {
+  const userId = req.user;
+	try {
+		const user = await User.findByIdAndDelete(userId);
+    return res.status(200).json({ message: 'user deleted successfully', results: user});
+	} catch (err) {
+		if (!statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
 };
 
 // sendGridMail.setApiKey(`${process.env.SENDGRID_API}`);

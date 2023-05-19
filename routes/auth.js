@@ -42,14 +42,12 @@ router.post(
   authCont.postNewPassword
 );
 
+
 router.get('/updateprofile', verifyTokenAndAuthorization, authCont.getEditProfile);
 
 router.patch('/updateprofile',
-  [
+[
     check("email")
-      .isEmail()
-      .normalizeEmail()
-      .withMessage("Please Enter a Valid Email")
       .custom(async(value, { req }) => {
         return await User.findOne({ email: value }).then((userDoc) => {
           if (userDoc) {
@@ -57,9 +55,10 @@ router.patch('/updateprofile',
           }
         });
       }),
-    check('firstName', 'Please provide first name').trim().not().isEmpty(),
-    check('lastName', 'please provide last name').trim().not().isEmpty(),
+   
   ],
-  verifyTokenAndAuthorization, authCont.patchEditProfile);
+verifyTokenAndAuthorization, authCont.patchEditProfile);
+
+router.delete('/userdelete', verifyTokenAndAuthorization, authCont.deleteUser);
 
 module.exports = router;

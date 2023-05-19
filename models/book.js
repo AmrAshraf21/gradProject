@@ -1,3 +1,5 @@
+const User = require('./user');
+
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
@@ -8,10 +10,20 @@ const bookSchema = new mongoose.Schema({
    unique:true,
    index:true,
   },
-  ratings:{
-   type:Number,
-   required:true
-  },
+  // ratings:{
+  //  type:Number,
+  //  required:true
+  // },
+  ratings: [
+    {
+      star: Number,
+      postedBy:
+        {
+          type: mongoose.Types.ObjectId,
+          ref: 'User'
+        },
+    },
+  ],
   title:{
    type:String,
    required:true,
@@ -29,6 +41,11 @@ const bookSchema = new mongoose.Schema({
   mod_title:{
    type:String,
    required:true
+  },
+
+  totalRating: {
+    type: String,
+    default: 0.
   }
 }, { timestamps: true ,})
 
