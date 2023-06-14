@@ -30,11 +30,9 @@ exports.signup = async (req, res, next) => {
 			error.data = errors.array();
 			throw error;
 		}
-		if (!req.file) {
-			const error = new Error('No Image Provided');
-			error.statusCode = 422;
-			throw error;
-		}
+		if (!req.file.path) {
+      console.log('no image provided!');
+    }
 
 		const { firstName, lastName, email, password, role } = req.body;
 		const hashedPw = await bcrypt.hash(password, 12);
@@ -44,7 +42,7 @@ exports.signup = async (req, res, next) => {
 			firstName,
 			lastName,
 			role,
-			image: req.file.path.replace('\\', '/'),
+			image: req.file.path.replace('\\', '/')
 		});
 
 		const savedUser = await user.save();
@@ -59,7 +57,7 @@ exports.signup = async (req, res, next) => {
 				console.log('succeed sending');
 			});
 		return res.status(201).json({
-			message: 'Success,User Created',
+			message: 'Success, User Created',
 			savedUser: savedUser,
 		});
 	} catch (err) {
@@ -129,7 +127,7 @@ exports.passwordReset = async (req, res, next) => {
         email: userExists.email,
         code: randomCode,
       },
-      process.end.SECRET_KEY_JWT,
+      process.env.SECRET_KEY_JWT,
       { expiresIn: "1h" }
     );
     userExists.resetToken = resetToken;
