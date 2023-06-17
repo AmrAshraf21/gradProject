@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const Book = require('../models/book');
 const User = require('../models/user');
 const { validationResult } = require('express-validator');
-const { options } = require('../routes/book');
 
 exports.postAddBook = async (req, res, next) => {
   try {
@@ -100,7 +99,70 @@ exports.getSearch = async (req, res, next) => {
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
-      next(err);
     }
+    next(err);
+  }
+};
+
+exports.rating = async (req, res, next) => {
+  try {
+  const userId = req.user.userId;
+  console.log(userId);
+  const user = await User.findById(userId);
+  console.log(user);
+  if (!req.user) {
+    return res.status(401).json({ message: 'Login to continue.' });
+  }
+  if (!user) {
+    return res.status(404).json({ message: 'User not found.' });
+  }
+
+  const { star, bookId } = req.body;
+  console.log(star);
+  console.log(bookId);
+    const book = await Book.findById(bookId);
+    if (!book) {
+      return res.status(404).json({ error: 'Book not found' });
+    }
+    console.log(book);
+    console.log(book.ratings);
+
+    const alreadyRated = book.ratings.find((rating) => rating.postedBy.toString() === userId.toString());
+    console.log(alreadyRated);
+    if (alreadyRated) {
+      const updateRating = await Book.updateOne(
+        {
+          ratings: { $elemMatch: alreadyRated }
+        },
+        {
+          $set: { "ratings.$.star": star }
+        },
+        {
+          new: true
+        }
+      );
+      return res.status(200).json({ message: 'rating updated!', updateRating });
+    } else {
+      const rateBook = await Book.findByIdAndUpdate(
+        _id,
+        {
+          $push: {
+            ratings: {
+              star: star,
+              postedBy: userId
+            }
+          }
+        },
+        {
+          new: true
+        }
+      );
+      return res.status(200).json({ message: 'rating success!', rateBook });
+    }
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
   }
 };

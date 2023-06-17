@@ -30,9 +30,9 @@ exports.signup = async (req, res, next) => {
 			error.data = errors.array();
 			throw error;
 		}
-		if (!req.file.path) {
-      console.log('no image provided!');
-    }
+
+    let image = '';
+		if (req.file) image = req.file.path.replace('\\', '/');
 
 		const { firstName, lastName, email, password, role } = req.body;
 		const hashedPw = await bcrypt.hash(password, 12);
@@ -42,7 +42,7 @@ exports.signup = async (req, res, next) => {
 			firstName,
 			lastName,
 			role,
-			image: req.file.path.replace('\\', '/')
+			image
 		});
 
 		const savedUser = await user.save();
@@ -144,7 +144,7 @@ exports.passwordReset = async (req, res, next) => {
     });
 
     res.status(200).json({
-      message: "Reset Password",
+      message: 'Reset Password',
       code: randomCode,
       resetToken: resetToken,
     });
@@ -252,9 +252,9 @@ exports.patchEditProfile = async (req, res, next) => {
 			
 		 	throw error;
 		}
-		console.log(image);
-		console.log("-----");
-		console.log(updateUser.image);
+		// console.log(image);
+		// console.log("-----");
+		// console.log(updateUser.image);
 		//   if(image !== updateUser.image || image === updateUser.image){
 		//  	clearImage(updateUser.image);
 		//  }

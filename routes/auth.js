@@ -22,7 +22,7 @@ router.post(
 		check('password').trim().isLength({ min: 5 }).withMessage('please enter a strong password'),
 		check('firstName').trim().not().isEmpty(),
 		check('lastName').trim().not().isEmpty(),
-		check('image','Please Provide an Image')
+		// check('image','Please Provide an Image')
 	],
 	authCont.signup
 );
@@ -32,7 +32,7 @@ router.post('/password-reset', authCont.passwordReset);
 router.post(
   '/new-password',
   [
-    check("newPassword")
+    check('newPassword')
       .not()
       .isEmpty()
       .trim()

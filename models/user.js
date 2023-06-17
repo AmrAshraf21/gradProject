@@ -22,8 +22,7 @@ const userSchema = new Schema({
     required: true
   },
 	image: {
-		type: String,
-    required: false
+		type: String
 	 },
   role: {
 		type: String,
@@ -37,14 +36,12 @@ const userSchema = new Schema({
     type: Date
   },
   
-  favorits: {
-		books: [
+  favorits: [
 			{
 				type: mongoose.Types.ObjectId,
 				ref: 'Book',
 			}
-		]
-	},
+	],
   wishlist: {
 		books: [
 			{
