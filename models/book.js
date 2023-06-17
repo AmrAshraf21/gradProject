@@ -10,20 +10,20 @@ const bookSchema = new mongoose.Schema({
    unique:true,
    index:true,
   },
-  // ratings:{
-  //  type:Number,
-  //  required:true
-  // },
-  ratings: [
-    {
-      star: Number,
-      postedBy:
-        {
-          type: mongoose.Types.ObjectId,
-          ref: 'User'
-        },
-    },
-  ],
+  ratings:{
+   type:Number,
+   required:true
+  },
+  // ratings: [
+  //   {
+  //     star: Number,
+  //     postedBy:
+  //       {
+  //         type: mongoose.Types.ObjectId,
+  //         ref: 'User'
+  //       },
+  //   },
+  // ],
   title:{
    type:String,
    required:true,
