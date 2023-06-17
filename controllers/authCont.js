@@ -29,12 +29,13 @@ exports.signup = async (req, res, next) => {
 			error.data = errors.array();
 			throw error;
 		}
-		if (!req.file) {
-			const error = new Error('No Image Provided');
-			error.statusCode = 422;
-			throw error;
-		}
-
+		// if (!req.file) {
+		// 	const error = new Error('No Image Provided');
+		// 	error.statusCode = 422;
+		// 	throw error;
+		// }
+		let image = '';
+		if (req.file) image = req.file.path.replace('\\', '/');
 		const { firstName, lastName, email, password, role } = req.body;
 		const hashedPw = await bcrypt.hash(password, 12);
 		const user = new User({
@@ -43,7 +44,7 @@ exports.signup = async (req, res, next) => {
 			firstName,
 			lastName,
 			role,
-			image: req.file.path.replace('\\', '/'),
+			image,
 		});
 
 		const savedUser = await user.save();
@@ -223,11 +224,11 @@ exports.patchEditProfile = async (req, res, next) => {
 		if (req.file) {
 			image = req.file.path.replace('\\', '/');
 		}
-		if (!image) {
-			const error = new Error('No Image Picked');
-			error.statusCode = 422;
-			throw error;
-		}
+		// if (!image) {
+		// 	const error = new Error('No Image Picked');
+		// 	error.statusCode = 422;
+		// 	throw error;
+		// }
 
 		const updateUser = await User.findByIdAndUpdate(userId, req.body, { new: true, runValidators: false });
 
@@ -263,9 +264,9 @@ exports.patchEditProfile = async (req, res, next) => {
 	}
 };
 
-const clearImage = (filePath) => {
-	filePath = path.join(__dirname, '..', filePath);
-	fs.unlink(filePath, (err) => {
-		console.log(err);
-	});
-};
+// const clearImage = (filePath) => {
+// 	filePath = path.join(__dirname, '..', filePath);
+// 	fs.unlink(filePath, (err) => {
+// 		console.log(err);
+// 	});
+// };
