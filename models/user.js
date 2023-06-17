@@ -34,14 +34,24 @@ const userSchema = new Schema({
 	image: {
 		type: String
 	 },
-	favorits: {
-		books: [
-			{
-				type: mongoose.Types.ObjectId,
-				ref: 'Book',
-			},
-		],
-	},
+	 favorits:[{
+		type:mongoose.Types.ObjectId,
+		ref:"Book",
+		is_read:Number,
+		rating:Number,
+		is_reviewed: Number
+	 }],
+
+
+	 
+	// favorits: {
+	// 	books: [
+	// 		{
+	// 			type: mongoose.Types.ObjectId,
+	// 			ref: 'Book',
+	// 		},
+	// 	],
+	// },
 	wishlist: {
 		books: [{ type: mongoose.Types.ObjectId, ref: 'Book' }],
 	},
