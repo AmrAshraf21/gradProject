@@ -40,6 +40,9 @@ const userSchema = new Schema({
 			{
 				type: mongoose.Types.ObjectId,
 				ref: 'Book',
+        is_read: Number,
+		    rating: Number,
+		    is_reviewed: Number
 			}
 	],
   wishlist: {
