@@ -226,12 +226,12 @@ exports.patchEditProfile = async (req, res, next) => {
 		// 	error.statusCode = 422;
 		// 	throw error;
 		// }
-
+    const { newFName, newLName, newEmail } = req.body;
 		const updateUser = await User.findByIdAndUpdate(userId,
       {
-        firstName: req.body.newFName,
-        lastName: req.body.newLName,
-        email: req.body.newEmail,
+        firstName: newFName,
+        lastName: newLName,
+        email: newEmail,
         image: image
       },
       {

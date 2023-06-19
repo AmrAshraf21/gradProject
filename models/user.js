@@ -35,20 +35,11 @@ const userSchema = new Schema({
   resetTokenExpiration: {
     type: Date
   },
-  
-  favorits: [
-			{
-				type: mongoose.Types.ObjectId,
-				ref: 'Book',
-        is_read: Number,
-		    rating: Number,
-		    is_reviewed: Number
-			}
-	],
+
   wishlist: {
-		books: [
-			{
-				type: mongoose.Types.ObjectId,
+    books: [
+      {
+        type: mongoose.Types.ObjectId,
 				ref: 'Book'
 			},
 		],
@@ -61,7 +52,15 @@ const userSchema = new Schema({
       },
     ],
   },
-
+  favorits: [
+      {
+        book: { type: mongoose.Types.ObjectId, ref: 'Book' },
+        is_read: { type: Number, default: 0 },
+        rating: { type: Number, default: 0 },
+        is_reviewed: { type: Number, default: 0 }
+      }
+  ],
+  
 //   lists: {
 //     type: Array,
 //     books: [

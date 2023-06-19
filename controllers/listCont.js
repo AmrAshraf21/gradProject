@@ -113,8 +113,8 @@ exports.addToFavorits = async (req, res, next) => {
 		const { bookId } = req.body;
 		const book = await Book.findById(bookId);
 		if (!book) return res.status(404).json({ message: 'Book Not Found', results: null });
-
-		const alreadyAdded = user.favorits.find((book) => book._id.toString() === bookId.toString());
+   
+		const alreadyAdded = user.favorits.find((fav) => fav.toString() === bookId.toString());
 
 		if (alreadyAdded) {
 			return res.status(200).json({ message: 'Book already in favorits', results: user });
