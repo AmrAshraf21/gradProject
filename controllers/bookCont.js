@@ -81,6 +81,7 @@ exports.getAllBooks = async (req, res, next) => {
   }
 };
 
+
 exports.getSearch = async (req, res, next) => {
   const currentPage = req.query.page || 1;
   const perPage = 20;
@@ -104,61 +105,12 @@ exports.getSearch = async (req, res, next) => {
   }
 };
 
-exports.rating = async (req, res, next) => {
+exports.getPopular = async (req, res, next) => {
+  const currentPage = req.query.page || 1;
+  const perPage = 10;
   try {
-  const userId = req.user.userId;
-  console.log(userId);
-  const user = await User.findById(userId);
-  console.log(user);
-  if (!req.user) {
-    return res.status(401).json({ message: 'Login to continue.' });
-  }
-  if (!user) {
-    return res.status(404).json({ message: 'User not found.' });
-  }
-
-  const { star, bookId } = req.body;
-  console.log(star);
-  console.log(bookId);
-    const book = await Book.findById(bookId);
-    if (!book) {
-      return res.status(404).json({ error: 'Book not found' });
-    }
-    console.log(book);
-    console.log(book.ratings);
-
-    const alreadyRated = book.ratings.find((rating) => rating.postedBy.toString() === userId.toString());
-    console.log(alreadyRated);
-    if (alreadyRated) {
-      const updateRating = await Book.updateOne(
-        {
-          ratings: { $elemMatch: alreadyRated }
-        },
-        {
-          $set: { "ratings.$.star": star }
-        },
-        {
-          new: true
-        }
-      );
-      return res.status(200).json({ message: 'rating updated!', updateRating });
-    } else {
-      const rateBook = await Book.findByIdAndUpdate(
-        _id,
-        {
-          $push: {
-            ratings: {
-              star: star,
-              postedBy: userId
-            }
-          }
-        },
-        {
-          new: true
-        }
-      );
-      return res.status(200).json({ message: 'rating success!', rateBook });
-    }
+    const books = await Book.find().sort({ 'ratings_count': -1 }).skip((currentPage - 1) * perPage).limit(perPage);
+    return res.status(200).json({ message: 'Popular Releases', page: currentPage, results: books });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -166,3 +118,80 @@ exports.rating = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getNewest = async (req, res, next) => {
+  const currentPage = req.query.page || 1;
+  const perPage = 10;
+  try {
+    const newest = await Book.find().sort({ 'publication_year': 'desc' }).skip((currentPage - 1) * perPage).limit(perPage);
+    return res.status(200).json({ message: 'Newest Releases', page: currentPage, results: newest });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+// exports.rating = async (req, res, next) => {
+//   try {
+//   const userId = req.user.userId;
+//   console.log(userId);
+//   const user = await User.findById(userId);
+//   console.log(user);
+//   if (!req.user) {
+//     return res.status(401).json({ message: 'Login to continue.' });
+//   }
+//   if (!user) {
+//     return res.status(404).json({ message: 'User not found.' });
+//   }
+
+//   const { star, bookId } = req.body;
+//   console.log(star);
+//   console.log(bookId);
+//     const book = await Book.findById(bookId);
+//     if (!book) {
+//       return res.status(404).json({ error: 'Book not found' });
+//     }
+//     console.log(book);
+//     console.log(book.ratings);
+
+//     const alreadyRated = book.ratings.find((rating) => rating.postedBy.toString() === userId.toString());
+//     console.log(alreadyRated);
+//     if (alreadyRated) {
+//       const updateRating = await Book.updateOne(
+//         {
+//           ratings: { $elemMatch: alreadyRated }
+//         },
+//         {
+//           $set: { "ratings.$.star": star }
+//         },
+//         {
+//           new: true
+//         }
+//       );
+//       return res.status(200).json({ message: 'rating updated!', updateRating });
+//     } else {
+//       const rateBook = await Book.findByIdAndUpdate(
+//         _id,
+//         {
+//           $push: {
+//             ratings: {
+//               star: star,
+//               postedBy: userId
+//             }
+//           }
+//         },
+//         {
+//           new: true
+//         }
+//       );
+//       return res.status(200).json({ message: 'rating success!', rateBook });
+//     }
+//   } catch (err) {
+//     if (!err.statusCode) {
+//       err.statusCode = 500;
+//     }
+//     next(err);
+//   }
+// };

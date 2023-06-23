@@ -52,24 +52,23 @@ const userSchema = new Schema({
       },
     ],
   },
-  favorits: [
+  favorits: {
+    books: [
       {
-        book: { type: mongoose.Types.ObjectId, ref: 'Book' },
-        is_read: { type: Number, default: 0 },
-        rating: { type: Number, default: 0 },
-        is_reviewed: { type: Number, default: 0 }
+        type: mongoose.Types.ObjectId,
+        ref: 'Book',
       }
-  ],
-  
-//   lists: {
-//     type: Array,
-//     books: [
-//       {
-//         type: Schema.Types.ObjectId,
-//         ref: 'Book'
-//       }
-//     ]
-//   }
+    ]
+  }
 });
+
+// favorits: [
+//       {
+//         book: { type: mongoose.Types.ObjectId, ref: 'Book' },
+//         is_read: { type: Number, default: 0 },
+//         rating: { type: Number, default: 0 },
+//         is_reviewed: { type: Number, default: 0 }
+//       }
+//   ],
 
 module.exports = mongoose.model('User', userSchema);
