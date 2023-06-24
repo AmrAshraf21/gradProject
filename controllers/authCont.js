@@ -238,7 +238,6 @@ exports.patchEditProfile = async (req, res, next) => {
         new: true,
         runValidators: false
       });
-      console.log(updateUser);
 
 		if(!updateUser){
 		  const error = new Error("Could Not Find a User to update their Information");
