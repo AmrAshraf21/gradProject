@@ -83,7 +83,7 @@ const userSchema = new Schema({
   //     },
   //   ],
   // }
-});
+}, { timestamps: true });
 
 // favorits: [
 //       {

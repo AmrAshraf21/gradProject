@@ -78,39 +78,39 @@ exports.removeFromWishlist = async (req, res, next) => {
 };
 
 exports.getFavorits = async (req, res, next) => {
-	try {
-		if (!req.user) {
-			return res.status(401).json({ message: 'Login to continue.' });
-		}
-		const { userId } = req.user;
-		const user = await User.findById(userId);
+    try {
+        if (!req.user) {
+            return res.status(401).json({ message: 'Login to continue.' });
+        }
+        const { userId } = req.user;
+        const user = await User.findById(userId);
 
-		if (!user) {
-			return res.status(404).json({ message: 'User not found.' });
-		}
-		const { favorits } = await User.findById(userId).populate({ path: 'favorits.books.book_item', model: 'Book' }).exec();
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+        const { favorits } = await User.findById(userId).populate("favorits.books.book_item").exec();
 
-		return res.status(200).json({ message: "User's Favorites", results: favorits });
-	} catch (err) {
-		if (!err.statusCode) {
-			err.statusCode = 500;
-		}
-		next(err);
-	}
+        return res.status(200).json({ message: "User's Favorites", results: favorits });
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
 };
 
 exports.addToFavorits = async (req, res, next) => {
-	try {
-		const userId = req.user.userId;
-		const user = await User.findById(userId);
-		if (!req.user) {
-			return res.status(401).json({ message: 'Login to continue.' });
-		}
-		if (!user) {
-			return res.status(404).json({ message: 'User not found.' });
-		}
+  try {
+    const userId = req.user.userId;
+    const user = await User.findById(userId);
+    if (!req.user) {
+    return res.status(401).json({ message: 'Login to continue.' });
+    }
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
 
-		const { bookId } = req.body;
+	  const { bookId } = req.body;
 		const book = await Book.findById(bookId);
 		if (!book) return res.status(404).json({ message: 'Book Not Found', results: null });
    
