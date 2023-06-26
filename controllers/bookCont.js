@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Book = require('../models/book');
 const User = require('../models/user');
 const { validationResult } = require('express-validator');
+const { validateRating } = require('../middleware/helperFunctions');
 
 exports.postAddBook = async (req, res, next) => {
   try {
@@ -25,9 +26,12 @@ exports.postAddBook = async (req, res, next) => {
 
 exports.getSingleBook = async (req, res, next) => {
   try {
-    const bookId = req.params.bookId;
-    const book = await Book.findOne({ book_id: bookId });
-    return res.status(200).json({ message: 'Done...', results: book });
+    const { bookId } = req.body;
+		const book = await Book.findById(bookId);
+
+		if (!book) return res.status(404).json({ message: 'Book Not Found', results: null });
+    
+    return res.status(200).json({ message: 'Book Retrieved', results: book });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -38,7 +42,7 @@ exports.getSingleBook = async (req, res, next) => {
 
 exports.deleteBook = async (req, res, next) => {
   try {
-    const bookId = req.params.bookId;
+    const bookId = req.params;
     await Book.findOneAndDelete({ book_id: bookId });
     return res.status(200).json({ message: 'Successfully Deleted...', results: null });
   } catch (err) {
@@ -133,65 +137,44 @@ exports.getNewest = async (req, res, next) => {
   }
 };
 
-// exports.rating = async (req, res, next) => {
-//   try {
-//   const userId = req.user.userId;
-//   console.log(userId);
-//   const user = await User.findById(userId);
-//   console.log(user);
-//   if (!req.user) {
-//     return res.status(401).json({ message: 'Login to continue.' });
-//   }
-//   if (!user) {
-//     return res.status(404).json({ message: 'User not found.' });
-//   }
+exports.rating = async (req, res, next) => {
+  try {
+  const userId = req.user.userId;
+  if (!req.user) {
+    return res.status(401).json({ message: 'Login to continue.' });
+  }
+  console.log(userId);
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ message: 'User not found.' });
+  }
+  console.log(user);
 
-//   const { star, bookId } = req.body;
-//   console.log(star);
-//   console.log(bookId);
-//     const book = await Book.findById(bookId);
-//     if (!book) {
-//       return res.status(404).json({ error: 'Book not found' });
-//     }
-//     console.log(book);
-//     console.log(book.ratings);
+  const { rate, bookId } = req.body;
+  console.log(rate);
+  console.log(bookId);
+    const book = await Book.findById(bookId);
+    if (!book) {
+      return res.status(404).json({ error: 'Book not found' });
+    }
+    console.log(book);
 
-//     const alreadyRated = book.ratings.find((rating) => rating.postedBy.toString() === userId.toString());
-//     console.log(alreadyRated);
-//     if (alreadyRated) {
-//       const updateRating = await Book.updateOne(
-//         {
-//           ratings: { $elemMatch: alreadyRated }
-//         },
-//         {
-//           $set: { "ratings.$.star": star }
-//         },
-//         {
-//           new: true
-//         }
-//       );
-//       return res.status(200).json({ message: 'rating updated!', updateRating });
-//     } else {
-//       const rateBook = await Book.findByIdAndUpdate(
-//         _id,
-//         {
-//           $push: {
-//             ratings: {
-//               star: star,
-//               postedBy: userId
-//             }
-//           }
-//         },
-//         {
-//           new: true
-//         }
-//       );
-//       return res.status(200).json({ message: 'rating success!', rateBook });
-//     }
-//   } catch (err) {
-//     if (!err.statusCode) {
-//       err.statusCode = 500;
-//     }
-//     next(err);
-//   }
-// };
+    const alreadyRated = user.favorits.books.find((book) => book.rating !== 0);
+    console.log(alreadyRated);
+
+    if (alreadyRated) {
+      alreadyRated.rating = validateRating(rate);
+      await user.save();
+      return res.status(200).json({ message: 'Rating updated!', updateRating: user });
+    } else {
+      user.favorits.books.push({ bookId, rating: validateRating(rate) });
+      await user.save();
+      return res.status(200).json({ message: 'Rating success!', rateBook: user });
+    }
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};

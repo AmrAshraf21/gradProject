@@ -88,7 +88,7 @@ exports.getFavorits = async (req, res, next) => {
 		if (!user) {
 			return res.status(404).json({ message: 'User not found.' });
 		}
-		const { favorits } = await User.findById(userId).populate({ path: 'favorits.books', model: 'Book' }).exec();
+		const { favorits } = await User.findById(userId).populate({ path: 'favorits.books.book_item', model: 'Book' }).exec();
 
 		return res.status(200).json({ message: "User's Favorites", results: favorits });
 	} catch (err) {
@@ -114,12 +114,18 @@ exports.addToFavorits = async (req, res, next) => {
 		const book = await Book.findById(bookId);
 		if (!book) return res.status(404).json({ message: 'Book Not Found', results: null });
    
-		const alreadyAdded = user.favorits.books.find((book) => book._id.toString() === bookId.toString());
+		const alreadyAdded = user.favorits.books.find((book) => book.book_item._id.toString() === bookId.toString());
 
 		if (alreadyAdded) {
 			return res.status(200).json({ message: 'Book already in favorits', results: user });
 		} else {
-			user.favorits.books.push(book);
+			const newbook = {
+        book_item:book,
+        is_read: 0,
+        rating: 0,
+        is_reviewed: 0
+      }
+			user.favorits.books.push(newbook);
 			const updatedUser = await user.save();
 			return res.status(200).json({ message: 'successfully added to favorits', results: updatedUser, book });
 		}
@@ -171,7 +177,15 @@ exports.removeFromFavorits = async (req, res, next) => {
     const bookId = req.body.bookId;
     const book = await Book.findById(bookId);
 
-    user.favorits.books.pull(book);
+    const bookIndex = user.favorits.books.findIndex((item) => item.book_item.toString() === bookId.toString());
+
+    if (bookIndex === -1) {
+      return res.status(404).json({ message: 'Book not found in favorites' });
+    }
+
+    user.favorits.books.splice(bookIndex, 1);
+
+    //user.favorits.books.pull(book.book_item);
     await user.save();
     
     return res.status(200).json({ message: 'successfully removed from favorits', results: user });

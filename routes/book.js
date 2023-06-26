@@ -22,15 +22,15 @@ router.post(
 );
 
 
-router.get('/', verifyTokenAndAuthorization, bookController.getAllBooks);
+router.get('/all', verifyTokenAndAuthorization, bookController.getAllBooks);
 router.get('/popular', verifyTokenAndAuthorization, bookController.getPopular);
 router.get('/newest', verifyTokenAndAuthorization, bookController.getNewest);
-router.get('/:bookId', verifyTokenAndAuthorization, bookController.getSingleBook);
+router.get('/', verifyTokenAndAuthorization, bookController.getSingleBook);
 router.delete('/:bookId',verifyTokenAdmin,bookController.deleteBook);
 router.patch('/:bookId',verifyTokenAdmin,bookController.updateBook);
 
 router.get('/search/:srch', verifyTokenAndAuthorization, bookController.getSearch);
 
-//router.put('/rating', verifyTokenAndAuthorization, bookController.rating);
+router.put('/rating', verifyTokenAndAuthorization, bookController.rating);
 
 module.exports = router;
