@@ -1,5 +1,3 @@
-const Book = require('./book');
-
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
@@ -62,36 +60,6 @@ const userSchema = new Schema({
       },
     ],
   }
-  //   favorits: {
-  //   books: [
-  //     {
-  //       type: mongoose.Types.ObjectId,
-  //       ref: 'Book',
-  //     },
-  //   ],
-  //   is_read: { type: Number, default: 0 },
-  //   rating: { type: Number, default: 0 },
-  //   is_reviewed: { type: Number, default: 0 }
-  // },
-  // favorits: {
-  //   books: [
-  //     {
-  //       type: mongoose.Types.ObjectId, ref: 'Book',
-  //       is_read: { type: Number, default: 0 },
-  //       rating: { type: Number, default: 0 },
-  //       is_reviewed: { type: Number, default: 0 }
-  //     },
-  //   ],
-  // }
 }, { timestamps: true });
-
-// favorits: [
-//       {
-//         book: { type: mongoose.Types.ObjectId, ref: 'Book' },
-//         is_read: { type: Number, default: 0 },
-//         rating: { type: Number, default: 0 },
-//         is_reviewed: { type: Number, default: 0 }
-//       }
-//   ],
 
 module.exports = mongoose.model('User', userSchema);

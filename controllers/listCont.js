@@ -1,7 +1,8 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const Book = require('../models/book.js');
 const User = require('../models/user.js');
 const { validationResult } = require('express-validator');
+const asyncHandler = require('express-async-handler');
 
 exports.getWishlist = async (req, res, next) => {
 	try {
@@ -41,6 +42,7 @@ exports.addToWishlist = async (req, res, next) => {
 		if (!book) return res.status(404).json({ message: 'Book Not Found', results: null });
 
 		const alreadyAdded = user.wishlist.books.find((book) => book._id.toString() === bookId.toString());
+    console.log(alreadyAdded);
 
 		if (alreadyAdded) {
 			return res.status(200).json({ message: 'Book already in wishlist', results: user });
@@ -114,7 +116,7 @@ exports.addToFavorits = async (req, res, next) => {
 		const book = await Book.findById(bookId);
 		if (!book) return res.status(404).json({ message: 'Book Not Found', results: null });
    
-		const alreadyAdded = user.favorits.books.find((book) => book.book_item._id.toString() === bookId.toString());
+		const alreadyAdded = user.favorits.books.find((book) => book.book_item.toString() === bookId.toString());
 
 		if (alreadyAdded) {
 			return res.status(200).json({ message: 'Book already in favorits', results: user });
@@ -172,6 +174,42 @@ exports.addToFavorits = async (req, res, next) => {
 exports.removeFromFavorits = async (req, res, next) => {
   try {
     const userId = req.user.userId;
+
+    const updatedUser = await User.findByIdAndUpdate(userId,
+    {
+      $pull: { 'favorits.books': { book_item: req.body.bookId } }
+    }, { new: true });
+
+  if (!updatedUser) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+  return res.status(200).json({ message: 'Successfully removed from favorites', results: updatedUser });
+
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next (err);
+  }
+};
+
+// exports.removeFromFavorits = asyncHandler(async (req, res, next) => {
+//   const userId = req.user.userId;
+
+//   const updatedUser = await User.findByIdAndUpdate(userId,
+//     {
+//       $pull: { 'favorits.books': { book_item: req.body.bookId } }
+//     }, { new: true });
+
+//   if (!updatedUser) {
+// 		return res.status(404).json({ message: 'User not found' });
+// 	}
+//   return res.status(200).json({ message: 'Successfully removed from favorites', results: updatedUser });
+// });
+
+/* exports.removeFromFavorits = async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
     const user = await User.findById(userId);
 
     const bookId = req.body.bookId;
@@ -195,7 +233,7 @@ exports.removeFromFavorits = async (req, res, next) => {
     }
     next (err);
   }
-};
+}; */
 
 exports.getRead = async (req, res, next) => {
 	try {

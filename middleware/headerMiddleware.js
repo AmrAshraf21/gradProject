@@ -7,3 +7,4 @@ exports.setHeaders = (req, res, next) => {
 	}
 	next();
 };
+/// CORS
