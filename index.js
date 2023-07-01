@@ -13,6 +13,8 @@ const { verifyTokenAndAuthorization } = require('./middleware/validateToken');
 const authRoutes = require('./routes/auth');
 const bookRoutes = require('./routes/book');
 const listRoutes = require('./routes/list');
+const flaskRoutes = require('./routes/flask');
+
 
 dotenv.config();
 
@@ -44,6 +46,7 @@ app.use(setHeaders);
 app.use('/auth', authRoutes);
 app.use('/book', bookRoutes);
 app.use('/list', listRoutes);
+app.use('/flask', flaskRoutes);
 
 app.get('/healthz', (req, res, next) => {
 	res.send('App is running');
