@@ -35,7 +35,7 @@ const userSchema = new Schema({
   },
 
   wishlist: {
-    books: [
+    items: [
       {
         type: mongoose.Types.ObjectId,
 				ref: 'Book'
@@ -43,7 +43,7 @@ const userSchema = new Schema({
 		],
 	},
   alreadyRead: {
-    books: [
+    items: [
       {
         type: mongoose.Types.ObjectId,
         ref: 'Book',

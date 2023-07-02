@@ -15,7 +15,7 @@ exports.getWishlist = async (req, res, next) => {
 		if (!user) {
 			return res.status(404).json({ message: 'User not found.' });
 		}
-		const { wishlist } = await User.findById(userId).populate({ path: 'wishlist.books', model: 'Book' }).exec();
+		const { wishlist } = await User.findById(userId).populate({ path: 'wishlist.items', model: 'Book' }).exec();
 
 		return res.status(200).json({ message: "User's wishlist", results: wishlist });
 	} catch (err) {
@@ -41,13 +41,13 @@ exports.addToWishlist = async (req, res, next) => {
 		const book = await Book.findById(bookId);
 		if (!book) return res.status(404).json({ message: 'Book Not Found', results: null });
 
-		const alreadyAdded = user.wishlist.books.find((book) => book._id.toString() === bookId.toString());
+		const alreadyAdded = user.wishlist.items.find((book) => book._id.toString() === bookId.toString());
     console.log(alreadyAdded);
 
 		if (alreadyAdded) {
 			return res.status(200).json({ message: 'Book already in wishlist', results: user });
 		} else {
-			user.wishlist.books.push(book);
+			user.wishlist.items.push(book);
 			const updatedUser = await user.save();
 			return res.status(200).json({ message: 'successfully added to wishlist', results: updatedUser, book });
 		}
@@ -67,7 +67,7 @@ exports.removeFromWishlist = async (req, res, next) => {
     const bookId = req.body.bookId;
     const book = await Book.findById(bookId);
 
-    user.wishlist.books.pull(book);
+    user.wishlist.items.pull(book);
     await user.save();
 
     return res.status(200).json({ message: 'successfully removed from wishlist', results: user });
@@ -139,38 +139,6 @@ exports.addToFavorits = async (req, res, next) => {
 	}
 };
 
-// exports.addToFavorits = async (req, res, next) => {
-// 	try {
-// 		const userId = req.user.userId;
-// 		const user = await User.findById(userId);
-// 		if (!req.user) {
-// 			return res.status(401).json({ message: 'Login to continue.' });
-// 		}
-// 		if (!user) {
-// 			return res.status(404).json({ message: 'User not found.' });
-// 		}
-
-// 		const { bookId } = req.body;
-// 		const book = await Book.findById(bookId);
-// 		if (!book) return res.status(404).json({ message: 'Book Not Found', results: null });
-   
-// 		const alreadyAdded = user.favorits.find((fav) => fav.toString() === bookId.toString());
-
-// 		if (alreadyAdded) {
-// 			return res.status(200).json({ message: 'Book already in favorits', results: user });
-// 		} else {
-// 			user.favorits.push(book);
-// 			const updatedUser = await user.save();
-// 			return res.status(200).json({ message: 'successfully added to favorits', results: updatedUser, book });
-// 		}
-// 	} catch (err) {
-// 		if (!err.statusCode) {
-// 			err.statusCode = 500;
-// 		}
-// 		next(err);
-// 	}
-// };
-
 exports.removeFromFavorits = async (req, res, next) => {
   try {
     const userId = req.user.userId;
@@ -192,49 +160,7 @@ exports.removeFromFavorits = async (req, res, next) => {
     next (err);
   }
 };
-
-// exports.removeFromFavorits = asyncHandler(async (req, res, next) => {
-//   const userId = req.user.userId;
-
-//   const updatedUser = await User.findByIdAndUpdate(userId,
-//     {
-//       $pull: { 'favorits.books': { book_item: req.body.bookId } }
-//     }, { new: true });
-
-//   if (!updatedUser) {
-// 		return res.status(404).json({ message: 'User not found' });
-// 	}
-//   return res.status(200).json({ message: 'Successfully removed from favorites', results: updatedUser });
-// });
-
-/* exports.removeFromFavorits = async (req, res, next) => {
-  try {
-    const userId = req.user.userId;
-    const user = await User.findById(userId);
-
-    const bookId = req.body.bookId;
-    const book = await Book.findById(bookId);
-
-    const bookIndex = user.favorits.books.findIndex((item) => item.book_item.toString() === bookId.toString());
-
-    if (bookIndex === -1) {
-      return res.status(404).json({ message: 'Book not found in favorites' });
-    }
-
-    user.favorits.books.splice(bookIndex, 1);
-
-    //user.favorits.books.pull(book.book_item);
-    await user.save();
-    
-    return res.status(200).json({ message: 'successfully removed from favorits', results: user });
-  } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
-    next (err);
-  }
-}; */
-
+   
 exports.getRead = async (req, res, next) => {
 	try {
 		if (!req.user) {
@@ -246,7 +172,7 @@ exports.getRead = async (req, res, next) => {
 		if (!user) {
 			return res.status(404).json({ message: 'User not found.' });
 		}
-		const { alreadyRead } = await User.findById(userId).populate({ path: 'alreadyRead.books', model: 'Book' }).exec();
+		const { alreadyRead } = await User.findById(userId).populate({ path: 'alreadyRead.items', model: 'Book' }).exec();
 
 		return res.status(200).json({ message: "User's Already read", results: alreadyRead });
 	} catch (err) {
@@ -272,12 +198,12 @@ exports.addToRead = async (req, res, next) => {
 		const book = await Book.findById(bookId);
 		if (!book) return res.status(404).json({ message: 'Book Not Found', results: null });
 
-		const alreadyAdded = user.alreadyRead.books.find((book) => book._id.toString() === bookId.toString());
+		const alreadyAdded = user.alreadyRead.items.find((book) => book._id.toString() === bookId.toString());
 
 		if (alreadyAdded) {
 			return res.status(200).json({ message: 'Book already in already read', results: user });
 		} else {
-			user.alreadyRead.books.push(book);
+			user.alreadyRead.items.push(book);
 			const updatedUser = await user.save();
 			return res.status(200).json({ message: 'successfully added to already read', results: updatedUser, book });
 		}
@@ -297,7 +223,7 @@ exports.removeFromRead = async (req, res, next) => {
     const bookId = req.body.bookId;
     const book = await Book.findById(bookId);
 
-    user.alreadyRead.books.pull(book);
+    user.alreadyRead.items.pull(book);
     await user.save();
     
     return res.status(200).json({ message: 'successfully removed from already read', results: user });
