@@ -44,11 +44,11 @@ exports.addToWishlist = async (req, res, next) => {
 		const alreadyAdded = user.wishlist.items.find((book) => book._id.toString() === bookId.toString());
 
 		if (alreadyAdded) {
-			return res.status(200).json({ message: 'Book already in wishlist', results: user });
+			return res.status(200).json({ message: 'Book already in wishlist' });
 		} else {
 			user.wishlist.items.push(book);
-			const updatedUser = await user.save();
-			return res.status(200).json({ message: 'successfully added to wishlist', results: updatedUser, book });
+			await user.save();
+			return res.status(200).json({ message: 'successfully added to wishlist' });
 		}
 	} catch (err) {
 		if (!err.statusCode) {
@@ -69,7 +69,7 @@ exports.removeFromWishlist = async (req, res, next) => {
     user.wishlist.items.pull(book);
     await user.save();
 
-    return res.status(200).json({ message: 'successfully removed from wishlist', results: user });
+    return res.status(200).json({ message: 'successfully removed from wishlist' });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -118,7 +118,7 @@ exports.addToFavorits = async (req, res, next) => {
 		const alreadyAdded = user.favorits.books.find((book) => book.book_item.toString() === bookId.toString());
 
 		if (alreadyAdded) {
-			return res.status(200).json({ message: 'Book already in favorits', results: user });
+			return res.status(200).json({ message: 'Book already in favorits' });
 		} else {
 			const newbook = {
         book_item:book,
@@ -127,8 +127,8 @@ exports.addToFavorits = async (req, res, next) => {
         is_reviewed: 0
       }
 			user.favorits.books.push(newbook);
-			const updatedUser = await user.save();
-			return res.status(200).json({ message: 'successfully added to favorits', results: updatedUser, book });
+			await user.save();
+			return res.status(200).json({ message: 'successfully added to favorits' });
 		}
 	} catch (err) {
 		if (!err.statusCode) {
@@ -150,7 +150,7 @@ exports.removeFromFavorits = async (req, res, next) => {
   if (!updatedUser) {
     return res.status(404).json({ message: 'User not found' });
   }
-  return res.status(200).json({ message: 'Successfully removed from favorites', results: updatedUser });
+  return res.status(200).json({ message: 'Successfully removed from favorites' });
 
   } catch (err) {
     if (!err.statusCode) {
@@ -200,11 +200,11 @@ exports.addToRead = async (req, res, next) => {
 		const alreadyAdded = user.alreadyRead.items.find((book) => book._id.toString() === bookId.toString());
 
 		if (alreadyAdded) {
-			return res.status(200).json({ message: 'Book already in already read', results: user });
+			return res.status(200).json({ message: 'Book already in already read' });
 		} else {
 			user.alreadyRead.items.push(book);
-			const updatedUser = await user.save();
-			return res.status(200).json({ message: 'successfully added to already read', results: updatedUser, book });
+			await user.save();
+			return res.status(200).json({ message: 'successfully added to already read' });
 		}
 	} catch (err) {
 		if (!err.statusCode) {
@@ -225,7 +225,7 @@ exports.removeFromRead = async (req, res, next) => {
     user.alreadyRead.items.pull(book);
     await user.save();
     
-    return res.status(200).json({ message: 'successfully removed from already read', results: user });
+    return res.status(200).json({ message: 'successfully removed from already read' });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

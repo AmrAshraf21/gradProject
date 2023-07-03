@@ -249,17 +249,6 @@ exports.patchEditProfile = async (req, res, next) => {
 			
 		 	throw error;
 		}
-		// console.log(image);
-		// console.log("-----");
-		// console.log(updateUser.image);
-		//   if(image !== updateUser.image || image === updateUser.image){
-		//  	clearImage(updateUser.image);
-		//  }
-
-/* 		updateUser.image = image;
-		updateUser.firstName = firstName;
-		updateUser.lastName = lastName;
-		updateUser.email= email; */
 
 		await updateUser.save();
 		return res.status(201).json({message: 'profile updated successfully', results: updateUser});
