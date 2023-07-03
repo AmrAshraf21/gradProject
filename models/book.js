@@ -12,16 +12,6 @@ const bookSchema = new Schema({
    type:Number,
    required:true
   },
-  // ratings: [
-  //   {
-  //     star: Number,
-  //     postedBy:
-  //       {
-  //         type: mongoose.Types.ObjectId,
-  //         ref: 'User'
-  //       },
-  //   },
-  // ],
   title:{
    type: String,
    required: true,
