@@ -42,7 +42,6 @@ exports.addToWishlist = async (req, res, next) => {
 		if (!book) return res.status(404).json({ message: 'Book Not Found', results: null });
 
 		const alreadyAdded = user.wishlist.items.find((book) => book._id.toString() === bookId.toString());
-    console.log(alreadyAdded);
 
 		if (alreadyAdded) {
 			return res.status(200).json({ message: 'Book already in wishlist', results: user });
@@ -54,7 +53,7 @@ exports.addToWishlist = async (req, res, next) => {
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
-		}
+		}0
 		next(err);
 	}
 };

@@ -162,7 +162,7 @@ exports.rating = async (req, res, next) => {
       return res.status(404).json({ error: 'Book not found in user favorites' });
     }
 
-    user.favorits.books[bookIndex].rating = rate;
+    user.favorits.books[bookIndex].rating = validateRating(rate);
     await user.save();
 
     return res.status(200).json({ message: 'Rate updated successfully', updatedFav: user });
@@ -173,69 +173,3 @@ exports.rating = async (req, res, next) => {
     next(err);
   }
 };
-
-// exports.rating = async (req, res, next) => {
-//   try {
-//     if (!req.user) {
-//       return res.status(401).json({ message: 'Login to continue.' });
-//     }
-//     const userId = req.user.userId;
-
-//     const user = await User.findById(userId);
-//     if (!user) {
-//       return res.status(404).json({ message: 'User not found.' });
-//     }
-
-//     const { rate, bookId } = req.body;
-
-//     const book = await Book.findById(bookId);
-//     if (!book) {
-//       return res.status(404).json({ error: 'Book not found' });
-//     }
-
-//     const updatedFav = await User.findByIdAndUpdate(userId,
-//       { $elemMatch: { 'favorits.books': { book_item: req.body.bookId } } },
-//       { $set: { 'favorits.books.$.rating': rate } },
-//       { new: true }
-//     );
-
-//     return res.status(200).json({ message: 'Rate updated successfully', updatedFav });
-
-  // if (!req.user) {
-  //   return res.status(401).json({ message: 'Login to continue.' });
-  // }
-  // console.log(userId);
-  // const user = await User.findById(userId);
-  // if (!user) {
-  //   return res.status(404).json({ message: 'User not found.' });
-  // }
-  // console.log(user);
-
-  // const { rate, bookId } = req.body;
-  // console.log(rate);
-  // console.log(bookId);
-  //   const book = await Book.findById(bookId);
-  //   if (!book) {
-  //     return res.status(404).json({ error: 'Book not found' });
-  //   }
-  //   console.log(book);
-
-  //   const alreadyRated = user.favorits.books.find((book) => book.rating !== 0);
-  //   console.log(alreadyRated);
-
-  //   if (alreadyRated) {
-  //     alreadyRated.rating = validateRating(rate);
-  //     await user.save();
-  //     return res.status(200).json({ message: 'Rating updated!', updateRating: user });
-  //   } else {
-  //     user.favorits.books.push({ bookId, rating: validateRating(rate) });
-  //     await user.save();
-  //     return res.status(200).json({ message: 'Rating success!', rateBook: user });
-  //   }
-//   } catch (err) {
-//     if (!err.statusCode) {
-//       err.statusCode = 500;
-//     }
-//   next(err);
-//   }
-// };
