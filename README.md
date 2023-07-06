@@ -1,5 +1,5 @@
 # gradProject
-# Recommindation Books Gradution Project
+# Recommindation Books Graduation Project
 
 
 LISTS ENDPOINTS:
@@ -9,7 +9,7 @@ LISTS ENDPOINTS:
     2. PUT - http://localhost:5000/list/addToWishlist
     3. PUT - http://localhost:5000/list/RemoveFromWishlist
 
-  -favorits:
+  -favorites:
     1. GET - http://localhost:5000/list/favorits
     2. PUT - http://localhost:5000/list/addToFavorits
     3. PUT - http://localhost:5000/list/removeFromFavorits
